@@ -4,10 +4,11 @@ import {keymap} from "@codemirror/view";
 import {indentWithTab} from "@codemirror/commands";
 import {vim} from "@replit/codemirror-vim";
 
-function createEditor(parent, {initialCode = "", onChange = () => {}, onSave = () => {}} = {}) {
+function createEditor(parent, {initialCode = "", onChange = () => {}, onSave = () => {}, onKeyDown = () => {}} = {}) {
   const editor = new EditorView({
     parent,
     extensions: [
+      EditorView.domEventHandlers({keydown: onKeyDown}),
       vim({status: true}),
       basicSetup,
       javascript(),

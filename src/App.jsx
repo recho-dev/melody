@@ -1,7 +1,8 @@
 import "./App.css";
-import {useState, useEffect} from "react";
+import {useState, useEffect, useRef} from "react";
 import {Editor} from "./Editor.jsx";
 import {Sketch} from "./Sketch.jsx";
+import {createPiano} from "./createPiano.js";
 
 const initialCode = `function setup() {
   createCanvas(200, 200);
@@ -11,9 +12,14 @@ const initialCode = `function setup() {
 
 function App() {
   const [code, setCode] = useState(initialCode);
+  const pianoRef = useRef(createPiano());
 
   function onSave(code) {
     setCode(code);
+  }
+
+  function onKeyDown(code) {
+    pianoRef.current.play();
   }
 
   useEffect(() => {
@@ -34,7 +40,7 @@ function App() {
       </header>
       <main className="flex h-[calc(100vh-64px)]">
         <div className="h-full">
-          <Editor code={code} onSave={onSave} />
+          <Editor code={code} onSave={onSave} onKeyDown={onKeyDown} />
         </div>
         <div className="h-full">
           <Sketch code={code} />
