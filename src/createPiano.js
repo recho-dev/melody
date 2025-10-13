@@ -7,7 +7,7 @@ function midiToFrequency(midi) {
   return Tone.Frequency(midi, "midi").toFrequency();
 }
 
-export function createPiano() {
+export function createPiano({parent}) {
   const synth = new Tone.PolySynth(Tone.Synth, {
     oscillator: {
       type: "triangle",
@@ -27,7 +27,7 @@ export function createPiano() {
 
   // The format of the pieceData is [startTime, endTime, midiNote, velocity]
   const notes = [];
-  const {pieceData} = BeethovenMoonlight;
+  const {pieceData, numScreens} = BeethovenMoonlight;
   for (let i = 0; i < pieceData.length; i += 4) {
     const startTime = pieceData[i];
     const endTime = pieceData[i + 1];
@@ -36,22 +36,57 @@ export function createPiano() {
     const durationMs = endTime - startTime;
     notes.push({startTime, endTime, midiNote, velocity, duration: Math.max(0.1, durationMs / 1000)});
   }
-
   const timeNotes = d3.groups(notes, (d) => d.startTime);
 
+  const width = parent.offsetWidth;
+  const height = parent.offsetHeight;
+  const padding = 40;
+  const X = notes.map((d) => d.startTime);
+  const Y = notes.map((d) => d.midiNote);
+  const domainX = d3.extent(X);
+  const domainY = d3.extent(Y);
+  const xScale = d3.scaleLinear(domainX, [padding, (width * numScreens) / 10 - padding]);
+  const yScale = d3.scaleLinear(domainY, [height - padding, padding]);
+
+  const svg = d3.select(parent).append("svg").attr("width", width).attr("height", height);
+
+  const g = svg.append("g").attr("transform", `translate(0, 0)`);
+
+  g.selectAll("circle")
+    .data(notes)
+    .join("circle")
+    .attr("cx", (d) => xScale(d.startTime))
+    .attr("cy", (d) => yScale(d.midiNote))
+    .attr("r", 5)
+    .attr("fill", "black");
+
+  let transition;
   let index = 0;
+  let lastTime = Date.now();
 
   return {
     async play() {
+      // Play the piano
       if (Tone.getContext().state !== "running") await Tone.start();
       if (index >= timeNotes.length) index = 0;
-      const [, notes] = timeNotes[index];
+      const [startTime, notes] = timeNotes[index];
       for (const note of notes) {
         const frequency = midiToFrequency(note.midiNote);
         const normalizedVelocity = note.velocity / 127; // Normalize velocity to 0-1
         synth.triggerAttackRelease(frequency, note.duration, Tone.now(), normalizedVelocity);
       }
       index++;
+
+      // Animate the notes
+      const duration = Math.max(500, lastTime - Date.now());
+      const transformX = xScale(startTime);
+      if (transition) transition.end();
+      transition = g
+        .transition()
+        .duration(duration)
+        .ease(d3.easeCubicOut)
+        .attr("transform", `translate(${-transformX}, 0)`);
+      lastTime = Date.now();
     },
   };
 }

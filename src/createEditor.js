@@ -13,6 +13,9 @@ function createEditor(parent, {initialCode = "", onChange = () => {}, onSave = (
       basicSetup,
       javascript(),
       EditorView.updateListener.of(handleChange),
+      EditorView.theme({
+        "&": {fontSize: "14px", fontFamily: "monospace", height: "100%"},
+      }),
       keymap.of([
         {
           key: "Mod-s",

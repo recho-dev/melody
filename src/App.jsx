@@ -12,7 +12,8 @@ const initialCode = `function setup() {
 
 function App() {
   const [code, setCode] = useState(initialCode);
-  const pianoRef = useRef(createPiano());
+  const pianoRef = useRef(null);
+  const vizRef = useRef(null);
 
   function onSave(code) {
     setCode(code);
@@ -33,19 +34,28 @@ function App() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [code]);
 
+  useEffect(() => {
+    if (!pianoRef.current && vizRef.current) {
+      pianoRef.current = createPiano({parent: vizRef.current});
+    }
+  }, []);
+
   return (
     <div className="min-h-screen">
       <header className="h-[64px]">
         <h1> Recho Melody </h1>
       </header>
-      <main className="flex h-[calc(100vh-64px)]">
-        <div className="h-full">
-          <Editor code={code} onSave={onSave} onKeyDown={onKeyDown} />
+      <main className="flex h-[calc(100vh-264px)]">
+        <div className="h-full w-1/2">
+          <Editor code={code} onSave={onSave} onKeyDown={onKeyDown} style={{height: "100%"}} />
         </div>
-        <div className="h-full">
+        <div className="h-full w-1/2">
           <Sketch code={code} />
         </div>
       </main>
+      <div className="h-[200px]" ref={vizRef}>
+        Viz
+      </div>
     </div>
   );
 }
