@@ -1,35 +1,47 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import "./App.css";
+import {useState, useEffect} from "react";
+import {Editor} from "./Editor.jsx";
+import {Sketch} from "./Sketch.jsx";
+
+const initialCode = `function setup() {
+  createCanvas(200, 200);
+  background(0);
+  circle(100, 100, 50);
+}`;
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [code, setCode] = useState(initialCode);
+
+  function onSave(code) {
+    setCode(code);
+  }
+
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      if (event.key === "s" && event.metaKey) {
+        event.preventDefault();
+        onSave(code);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [code]);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="min-h-screen">
+      <header className="h-[64px]">
+        <h1> Recho Melody </h1>
+      </header>
+      <main className="flex h-[calc(100vh-64px)]">
+        <div className="h-full">
+          <Editor code={code} onSave={onSave} />
+        </div>
+        <div className="h-full">
+          <Sketch code={code} />
+        </div>
+      </main>
+    </div>
+  );
 }
 
-export default App
+export default App;
