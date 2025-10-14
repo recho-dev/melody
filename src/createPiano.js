@@ -56,7 +56,8 @@ export function createPiano({parent}) {
 
   const g = svg.append("g").attr("transform", `translate(0, 0)`);
 
-  g.selectAll("circle")
+  const circles = g
+    .selectAll("circle")
     .data(notes)
     .join("circle")
     .attr("cx", (d) => xScale(d.startTime))
@@ -82,16 +83,48 @@ export function createPiano({parent}) {
       }
       index++;
 
-      // Animate the notes
+      // Translate the notes
       const duration = Math.max(500, lastTime - Date.now());
       const transformX = xScale(startTime);
-      if (transition) transition.end();
       transition = g
         .transition()
         .duration(duration)
         .ease(d3.easeCubicOut)
         .attr("transform", `translate(${-transformX}, 0)`);
       lastTime = Date.now();
+
+      // Scale animation
+      circles
+        .filter((d) => {
+          const cx = xScale(d.startTime);
+          const x = cx - transformX;
+          return x >= 0 && x <= width;
+        })
+        .transition()
+        .duration(100)
+        .ease(d3.easeCubicOut)
+        .attr("r", (d) => {
+          const cx = xScale(d.startTime);
+          const x = cx - transformX;
+          const t = 1 - x / width;
+          return rScale(d.velocity) * (1 + t ** 2 * 1.8);
+        })
+        .transition()
+        .duration(100)
+        .ease(d3.easeCubicOut)
+        .attr("r", (d) => rScale(d.velocity));
+
+      // Fade out animation
+      circles
+        .filter((d) => {
+          const cx = xScale(d.startTime);
+          const x = cx - transformX;
+          return x <= 0 && x >= -width / 2;
+        })
+        .transition()
+        .duration(100)
+        .ease(d3.easeCubicOut)
+        .attr("r", 0);
     },
   };
 }
