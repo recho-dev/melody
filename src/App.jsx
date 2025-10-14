@@ -42,8 +42,8 @@ function App() {
 
   return (
     <div className="min-h-screen">
-      <header className="h-[64px]">
-        <h1> Recho Melody </h1>
+      <header className="h-[64px] gh-header gh-box-shadow gh-text-primary flex items-center justify-start">
+        <h1 className="ml-4 font-bold"> Recho Melody </h1>
       </header>
       <main className="flex h-[calc(100vh-264px)]">
         <div className="h-full w-1/2">
@@ -53,7 +53,7 @@ function App() {
           <Sketch code={code} />
         </div>
       </main>
-      <div className="h-[200px]" ref={vizRef}>
+      <div className="h-[200px] gh-border-top" ref={vizRef}>
         Viz
       </div>
     </div>
