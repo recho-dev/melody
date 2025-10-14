@@ -1,4 +1,11 @@
 @import "tailwindcss";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/spline-sans-mono";
+
+@theme {
+  --default-font-family: "Inter Variable";
+  --font-mono: "Spline Sans Mono Variable";
+}
 
 body {
   overflow: hidden;
