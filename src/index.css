@@ -1,5 +1,15 @@
 @import "tailwindcss";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/spline-sans-mono";
+
+@theme {
+  --default-font-family: "Inter Variable";
+  --font-mono: "Spline Sans Mono Variable";
+  --gh-bg-muted: #151b23;
+  --gh-border: rgb(61, 68, 77);
+}
 
 body {
   overflow: hidden;
+  background-color: #0d1117;
 }

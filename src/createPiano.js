@@ -44,22 +44,27 @@ export function createPiano({parent}) {
   const padding = 40;
   const X = notes.map((d) => d.startTime);
   const Y = notes.map((d) => d.midiNote);
+  const R = notes.map((d) => d.velocity);
   const domainX = d3.extent(X);
   const domainY = d3.extent(Y);
   const xScale = d3.scaleLinear(domainX, [padding, (width * numScreens) / 10 - padding]);
-  const yScale = d3.scaleLinear(domainY, [height - padding, padding]);
+  const yScale = d3.scaleLinear(domainY, [height - padding * 2, padding / 4]);
+  const colorScale = d3.scaleSequential(d3.interpolateWarm).domain(domainY);
+  const rScale = d3.scaleRadial(d3.extent(R), [5, 15]);
 
   const svg = d3.select(parent).append("svg").attr("width", width).attr("height", height);
 
   const g = svg.append("g").attr("transform", `translate(0, 0)`);
 
-  g.selectAll("circle")
+  const circles = g
+    .selectAll("circle")
     .data(notes)
     .join("circle")
     .attr("cx", (d) => xScale(d.startTime))
     .attr("cy", (d) => yScale(d.midiNote))
-    .attr("r", 5)
-    .attr("fill", "black");
+    .attr("r", (d) => rScale(d.velocity))
+    .attr("fill", (d) => colorScale(d.midiNote))
+    .attr("fill-opacity", 0.9);
 
   let transition;
   let index = 0;
@@ -78,16 +83,48 @@ export function createPiano({parent}) {
       }
       index++;
 
-      // Animate the notes
+      // Translate the notes
       const duration = Math.max(500, lastTime - Date.now());
       const transformX = xScale(startTime);
-      if (transition) transition.end();
       transition = g
         .transition()
         .duration(duration)
         .ease(d3.easeCubicOut)
         .attr("transform", `translate(${-transformX}, 0)`);
       lastTime = Date.now();
+
+      // Scale animation
+      circles
+        .filter((d) => {
+          const cx = xScale(d.startTime);
+          const x = cx - transformX;
+          return x >= 0 && x <= width;
+        })
+        .transition()
+        .duration(100)
+        .ease(d3.easeCubicOut)
+        .attr("r", (d) => {
+          const cx = xScale(d.startTime);
+          const x = cx - transformX;
+          const t = 1 - x / width;
+          return rScale(d.velocity) * (1 + t ** 2 * 1.8);
+        })
+        .transition()
+        .duration(100)
+        .ease(d3.easeCubicOut)
+        .attr("r", (d) => rScale(d.velocity));
+
+      // Fade out animation
+      circles
+        .filter((d) => {
+          const cx = xScale(d.startTime);
+          const x = cx - transformX;
+          return x <= 0 && x >= -width / 2;
+        })
+        .transition()
+        .duration(100)
+        .ease(d3.easeCubicOut)
+        .attr("r", 0);
     },
   };
 }
