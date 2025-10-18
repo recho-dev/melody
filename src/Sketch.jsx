@@ -14,10 +14,11 @@ export function Sketch({code}) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!sketchRef.current) return;
-
-    // Reset error state
     setError(null);
+  }, [code]);
+
+  useEffect(() => {
+    if (!sketchRef.current) return;
 
     sketchRef.current.innerHTML = "";
     const iframe = document.createElement("iframe");
@@ -80,9 +81,10 @@ export function Sketch({code}) {
     };
   }, [code]);
 
-  if (error) {
-    return <ErrorDisplay error={error} />;
-  }
-
-  return <div ref={sketchRef} className="w-full h-full" />;
+  return (
+    <>
+      {error && <ErrorDisplay error={error} />}
+      <div ref={sketchRef} className="w-full h-full" />;
+    </>
+  );
 }
