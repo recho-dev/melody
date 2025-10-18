@@ -71,17 +71,17 @@ function App() {
           </button>
         )}
       </header>
-      <main className="flex h-[calc(100vh-264px)]">
+      <main className="flex h-[calc(100vh-64px)]">
         <div className="h-full w-1/2">
-          <Editor code={code} onSave={onSave} onKeyDown={onKeyDown} style={{height: "100%"}} />
+          <div ref={vizRef} className="h-[50px] gh-border-bottom"></div>
+          <div className="py-2 h-full">
+            <Editor code={code} onSave={onSave} onKeyDown={onKeyDown} style={{height: "100%"}} />
+          </div>
         </div>
-        <div className="h-full w-1/2">
+        <div className="h-full w-1/2 gh-border-left">
           <Sketch code={code} />
         </div>
       </main>
-      <div className="h-[200px] gh-border-top" ref={vizRef}>
-        Viz
-      </div>
     </div>
   );
 }

@@ -44,13 +44,12 @@ export function createPiano({parent}) {
   const padding = 40;
   const X = notes.map((d) => d.startTime);
   const Y = notes.map((d) => d.midiNote);
-  const R = notes.map((d) => d.velocity);
+  const R = notes.map((d) => d.midiNote);
   const domainX = d3.extent(X);
   const domainY = d3.extent(Y);
-  const xScale = d3.scaleLinear(domainX, [padding, (width * numScreens) / 10 - padding]);
-  const yScale = d3.scaleLinear(domainY, [height - padding * 2, padding / 4]);
+  const xScale = d3.scaleLinear(domainX, [padding, (width * numScreens) / 6 - padding]);
   const colorScale = d3.scaleSequential(d3.interpolateWarm).domain(domainY);
-  const rScale = d3.scaleRadial(d3.extent(R), [5, 15]);
+  const rScale = d3.scaleRadial(d3.extent(R), [8, 20]);
 
   const svg = d3.select(parent).append("svg").attr("width", width).attr("height", height);
 
@@ -61,7 +60,7 @@ export function createPiano({parent}) {
     .data(notes)
     .join("circle")
     .attr("cx", (d) => xScale(d.startTime))
-    .attr("cy", (d) => yScale(d.midiNote))
+    .attr("cy", height / 2)
     .attr("r", (d) => rScale(d.velocity))
     .attr("fill", (d) => colorScale(d.midiNote))
     .attr("fill-opacity", 0.9);
@@ -107,7 +106,7 @@ export function createPiano({parent}) {
           const cx = xScale(d.startTime);
           const x = cx - transformX;
           const t = 1 - x / width;
-          return rScale(d.velocity) * (1 + t ** 2 * 1.8);
+          return rScale(d.velocity) * (1 + t ** 2 * 1.2);
         })
         .transition()
         .duration(100)

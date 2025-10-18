@@ -32,7 +32,3 @@
 .cm-focused {
   outline: none !important;
 }
-
-.cm-editor {
-  border-right: 1px solid var(--gh-border) !important;
-}
