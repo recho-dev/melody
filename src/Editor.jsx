@@ -1,5 +1,6 @@
 import {useRef, useEffect} from "react";
 import {createEditor} from "./createEditor.js";
+import "./editor.css";
 
 export function Editor({code, onChange, onSave, onKeyDown, ...props}) {
   const editorRef = useRef(null);
