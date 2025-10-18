@@ -14,6 +14,9 @@ importers:
       '@codemirror/lang-javascript':
         specifier: ^6.2.4
         version: 6.2.4
+      '@codemirror/lint':
+        specifier: ^6.9.0
+        version: 6.9.0
       '@codemirror/view':
         specifier: ^6.38.6
         version: 6.38.6
@@ -38,6 +41,9 @@ importers:
       d3:
         specifier: ^7.9.0
         version: 7.9.0
+      eslint-linter-browserify:
+        specifier: ^9.38.0
+        version: 9.38.0
       react:
         specifier: ^19.2.0
         version: 19.2.0
@@ -907,6 +913,9 @@ packages:
   escape-string-regexp@4.0.0:
     resolution: {integrity: sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==}
     engines: {node: '>=10'}
+
+  eslint-linter-browserify@9.38.0:
+    resolution: {integrity: sha512-uOR+eJFM+WQyyZAGeazz8D3XiS0a26bIK/uHSFZWQ7H8UK7hrUpHzMfcGZSzY1icM86LYCPhV3jYkVePWLjQGA==}
 
   eslint-plugin-react-hooks@5.2.0:
     resolution: {integrity: sha512-+f15FfK64YQwZdJNELETdn5ibXEUQmW1DZL6KXhNnc2heoy/sg9VJJeT7n8TlMWouzWqSWavFkIhHyIbIAEapg==}
@@ -2098,6 +2107,8 @@ snapshots:
       '@esbuild/win32-x64': 0.25.10
 
   escape-string-regexp@4.0.0: {}
+
+  eslint-linter-browserify@9.38.0: {}
 
   eslint-plugin-react-hooks@5.2.0(eslint@9.37.0(jiti@2.6.1)):
     dependencies:

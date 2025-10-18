@@ -1,10 +1,25 @@
-import {javascript} from "@codemirror/lang-javascript";
+import {javascript, esLint} from "@codemirror/lang-javascript";
 import {EditorView, basicSetup} from "codemirror";
 import {keymap} from "@codemirror/view";
 import {indentWithTab} from "@codemirror/commands";
 import {vim} from "@replit/codemirror-vim";
 import {githubDarkInit} from "@uiw/codemirror-theme-github";
 import {tags as t} from "@lezer/highlight";
+import * as eslint from "eslint-linter-browserify";
+import {linter} from "@codemirror/lint";
+import {browser} from "globals";
+
+const eslintConfig = {
+  languageOptions: {
+    globals: {
+      ...browser,
+    },
+    parserOptions: {
+      ecmaVersion: 2022,
+      sourceType: "module",
+    },
+  },
+};
 
 function createEditor(parent, {initialCode = "", onChange = () => {}, onSave = () => {}, onKeyDown = () => {}} = {}) {
   const editor = new EditorView({
@@ -35,6 +50,7 @@ function createEditor(parent, {initialCode = "", onChange = () => {}, onSave = (
         },
         indentWithTab,
       ]),
+      linter(esLint(new eslint.Linter(), eslintConfig)),
     ],
     doc: initialCode,
   });
