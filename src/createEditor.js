@@ -2,7 +2,7 @@ import {javascript, esLint} from "@codemirror/lang-javascript";
 import {EditorView, basicSetup} from "codemirror";
 import {keymap} from "@codemirror/view";
 import {indentWithTab} from "@codemirror/commands";
-import {vim} from "@replit/codemirror-vim";
+import {vim, Vim} from "@replit/codemirror-vim";
 import {githubDarkInit} from "@uiw/codemirror-theme-github";
 import {tags as t} from "@lezer/highlight";
 import * as eslint from "eslint-linter-browserify";
@@ -20,6 +20,8 @@ const eslintConfig = {
     },
   },
 };
+
+Vim.map("jj", "<Esc>", "insert");
 
 function createEditor(parent, {initialCode = "", onChange = () => {}, onSave = () => {}, onKeyDown = () => {}} = {}) {
   const editor = new EditorView({
