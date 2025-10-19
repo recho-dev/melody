@@ -71,6 +71,9 @@ export function createPiano({parent}) {
 
   return {
     async play() {
+      const diff = Date.now() - lastTime;
+      lastTime = Date.now();
+
       // Play the piano
       if (Tone.getContext().state !== "running") await Tone.start();
       if (index >= timeNotes.length) index = 0;
@@ -83,14 +86,14 @@ export function createPiano({parent}) {
       index++;
 
       // Translate the notes
-      const duration = Math.max(500, lastTime - Date.now());
+      const duration = Math.max(500, diff);
       const transformX = xScale(startTime);
+
       transition = g
         .transition()
         .duration(duration)
         .ease(d3.easeCubicOut)
         .attr("transform", `translate(${-transformX}, 0)`);
-      lastTime = Date.now();
 
       // Scale animation
       circles
