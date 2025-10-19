@@ -170,8 +170,69 @@ export function createPiano({parent, gutterWidth}) {
   let lastTime = Date.now();
   let currentCoords;
   let initialX = 0;
+  let start = false;
 
   resize();
+
+  async function play() {
+    start = true;
+
+    t += 0.01;
+    const diff = Date.now() - lastTime;
+    lastTime = Date.now();
+
+    // Play the piano
+    if (Tone.getContext().state !== "running") await Tone.start();
+    const i = index % timeNotes.length;
+    const [, notes] = timeNotes[i];
+    for (const note of notes) {
+      const frequency = midiToFrequency(note.midiNote);
+      const normalizedVelocity = note.velocity / 127; // Normalize velocity to 0-1
+      synth.triggerAttackRelease(frequency, note.duration, Tone.now(), normalizedVelocity);
+    }
+    index++;
+
+    // Update the percentage text
+    const percentage = Math.floor((index / timeNotes.length) * 100);
+    pText.text(`${percentage}%`);
+
+    // Add falling notes
+    for (const note of notes) {
+      const {left, right, bottom} = currentCoords;
+      const x = (left + right) / 2;
+      const y = bottom + 10;
+      createNote(x, y, rScale(note.velocity), colorScale(t));
+    }
+
+    // Translate the notes
+    const duration = Math.min(500, diff);
+    const nextNote = timeNotes[(i + 1) % timeNotes.length];
+    const nextStartTime = nextNote[0];
+    const transformX = xScale(nextStartTime);
+
+    notesGroup.transition().duration(duration).ease(d3.easeCubicOut).attr("transform", `translate(${-transformX}, 0)`);
+
+    // Scale animation
+    circles
+      .filter((d) => {
+        const cx = xScale(d.startTime);
+        const x = cx - transformX;
+        return x >= 0 && x <= width;
+      })
+      .transition()
+      .duration(100)
+      .ease(d3.easeCubicOut)
+      .attr("r", (d) => {
+        const cx = xScale(d.startTime);
+        const x = cx - transformX;
+        const t = 1 - x / width;
+        return rScale(d.velocity) * (1 + t ** 2);
+      })
+      .transition()
+      .duration(100)
+      .ease(d3.easeCubicOut)
+      .attr("r", (d) => rScale(d.velocity));
+  }
 
   return {
     resize,
@@ -196,66 +257,6 @@ export function createPiano({parent, gutterWidth}) {
         .ease(d3.easeCubicOut)
         .attr("transform", `translate(${currentX}, ${currentY})`);
     },
-    async play() {
-      t += 0.01;
-      const diff = Date.now() - lastTime;
-      lastTime = Date.now();
-
-      // Play the piano
-      if (Tone.getContext().state !== "running") await Tone.start();
-      const i = index % timeNotes.length;
-      const [, notes] = timeNotes[i];
-      for (const note of notes) {
-        const frequency = midiToFrequency(note.midiNote);
-        const normalizedVelocity = note.velocity / 127; // Normalize velocity to 0-1
-        synth.triggerAttackRelease(frequency, note.duration, Tone.now(), normalizedVelocity);
-      }
-      index++;
-
-      // Update the percentage text
-      const percentage = Math.floor((index / timeNotes.length) * 100);
-      pText.text(`${percentage}%`);
-
-      // Add falling notes
-      for (const note of notes) {
-        const {left, right, bottom} = currentCoords;
-        const x = (left + right) / 2;
-        const y = bottom + 10;
-        createNote(x, y, rScale(note.velocity), colorScale(t));
-      }
-
-      // Translate the notes
-      const duration = Math.min(500, diff);
-      const nextNote = timeNotes[(i + 1) % timeNotes.length];
-      const nextStartTime = nextNote[0];
-      const transformX = xScale(nextStartTime);
-
-      notesGroup
-        .transition()
-        .duration(duration)
-        .ease(d3.easeCubicOut)
-        .attr("transform", `translate(${-transformX}, 0)`);
-
-      // Scale animation
-      circles
-        .filter((d) => {
-          const cx = xScale(d.startTime);
-          const x = cx - transformX;
-          return x >= 0 && x <= width;
-        })
-        .transition()
-        .duration(100)
-        .ease(d3.easeCubicOut)
-        .attr("r", (d) => {
-          const cx = xScale(d.startTime);
-          const x = cx - transformX;
-          const t = 1 - x / width;
-          return rScale(d.velocity) * (1 + t ** 2);
-        })
-        .transition()
-        .duration(100)
-        .ease(d3.easeCubicOut)
-        .attr("r", (d) => rScale(d.velocity));
-    },
+    play,
   };
 }
