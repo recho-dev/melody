@@ -74,13 +74,14 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
   // Initialize the piano
   let piano;
   let gutterWidth;
+  let gutterObserver;
 
   let timeout = setTimeout(() => {
-    gutterWidth = editorParent.querySelector(".cm-gutters").offsetWidth;
-    bgParent.style.left = `${gutterWidth}px`;
-    bgParent.style.width = `calc(100% - ${gutterWidth}px)`;
     piano = createPiano({parent: bgParent});
-    movePianoToCursor(0);
+    resize();
+    const gutter = editorParent.querySelector(".cm-gutters");
+    gutterObserver = new ResizeObserver(() => resize());
+    gutterObserver.observe(gutter);
   }, 0);
 
   function handleKeyDown() {
@@ -117,20 +118,30 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
     }
   }
 
+  function resize() {
+    gutterWidth = editorParent.querySelector(".cm-gutters").offsetWidth;
+    bgParent.style.left = `${gutterWidth}px`;
+    bgParent.style.width = `calc(100% - ${gutterWidth}px)`;
+    if (piano) {
+      piano.resize();
+      const cursorPos = editor.state.selection.main.head;
+      movePianoToCursor(cursorPos);
+    }
+  }
+
   return {
     editor,
     updateFontSize: (fontSize) => {
       editor.dom.style.fontSize = fontSize;
     },
-    resize: () => {
-      piano.resize();
-    },
+    resize,
     destroy: () => {
       editor.destroy();
       bgParent.remove();
       editorParent.remove();
       piano?.destroy();
       clearTimeout(timeout);
+      gutterObserver?.disconnect();
     },
   };
 }

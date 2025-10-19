@@ -50,33 +50,25 @@ export function createPiano({parent, gutterWidth}) {
   const timeNotes = d3.groups(notes, (d) => d.startTime);
 
   // Draw the piano
-  const width = parent.offsetWidth;
-  const height = parent.offsetHeight;
+  let width;
+  let height;
+  let xScale;
+  let rScale;
   const X = notes.map((d) => d.startTime);
   const R = notes.map((d) => d.velocity);
-  const xScale = d3.scaleLinear(d3.extent(X), [0, (width * numScreens) / 5]);
-  const rScale = d3.scaleRadial(d3.extent(R), [5, 20]);
-
-  const svg = d3.select(svgParent).append("svg").attr("width", width).attr("height", height);
-  const cursorGroup = svg.append("g").attr("transform", `translate(0, 0)`);
-  const notesGroup = cursorGroup.append("g").attr("transform", `translate(0, 0)`);
-
   const PANEL_HEIGHT = 20;
 
-  const circles = notesGroup
-    .selectAll("circle")
-    .data(notes)
-    .join("circle")
-    .attr("cx", (d) => xScale(d.startTime))
-    .attr("cy", 0)
-    .attr("r", (d) => rScale(d.velocity))
-    .attr("fill", "#36334280");
+  const svg = d3.select(svgParent).append("svg");
+
+  const cursorGroup = svg.append("g").attr("transform", `translate(0, 0)`);
+
+  const notesGroup = cursorGroup.append("g").attr("transform", `translate(0, 0)`);
+
+  const circles = notesGroup.selectAll("circle").data(notes).join("circle");
 
   // Draw a percentage number
   const pText = svg
     .append("text")
-    .attr("x", width - 20)
-    .attr("y", height - PANEL_HEIGHT - 20)
     .attr("text-anchor", "end")
     .attr("dominant-baseline", "text-bottom")
     .attr("font-size", "100px")
@@ -88,10 +80,10 @@ export function createPiano({parent, gutterWidth}) {
     .text("0%");
 
   // Draw the notes
+  let ctx;
+  let walls;
   const engine = Matter.Engine.create();
   const fallingNotes = [];
-  const walls = createWalls();
-  const ctx = cm.context2d({width, height, container: canvasParent});
   const timer = d3.interval(update, 1000 / 60);
 
   function colorScale(t) {
@@ -147,12 +139,39 @@ export function createPiano({parent, gutterWidth}) {
     return [leftWall, rightWall, bottomWall];
   }
 
-  function resize() {}
+  function resize() {
+    width = parent.offsetWidth;
+    height = parent.offsetHeight;
+    xScale = d3.scaleLinear(d3.extent(X), [0, (width * numScreens) / 5]);
+    rScale = d3.scaleRadial(d3.extent(R), [5, 20]);
+
+    // Update the SVG size
+    svg.attr("width", width).attr("height", height);
+
+    circles
+      .attr("cx", (d) => xScale(d.startTime))
+      .attr("cy", 0)
+      .attr("r", (d) => rScale(d.velocity))
+      .attr("fill", "#36334280");
+
+    pText.attr("x", width - 20).attr("y", height - PANEL_HEIGHT - 20);
+
+    // Update the canvas size
+    if (ctx) ctx.canvas.remove();
+    ctx = cm.context2d({width, height, container: canvasParent});
+
+    // Update walls
+    if (walls) walls.forEach((wall) => Matter.Composite.remove(engine.world, wall));
+    walls = createWalls();
+  }
 
   let index = 0;
   let t = 0;
   let lastTime = Date.now();
   let currentCoords;
+  let initialX = 0;
+
+  resize();
 
   return {
     resize,
@@ -161,6 +180,7 @@ export function createPiano({parent, gutterWidth}) {
       Matter.Engine.clear(engine);
     },
     moveDown() {
+      initialX += 20;
       const [, , bottomWall] = walls;
       Matter.Body.setPosition(bottomWall, {x: bottomWall.position.x, y: bottomWall.position.y + 20});
     },
@@ -198,7 +218,7 @@ export function createPiano({parent, gutterWidth}) {
 
       // Add falling notes
       for (const note of notes) {
-        const {left, top, right, bottom} = currentCoords;
+        const {left, right, bottom} = currentCoords;
         const x = (left + right) / 2;
         const y = bottom + 10;
         createNote(x, y, rScale(note.velocity), colorScale(t));
