@@ -18,6 +18,10 @@
   border-left: 1px solid rgb(61, 68, 77);
 }
 
+.gh-bg-secondary {
+  background-color: #0d1117;
+}
+
 .main {
   background-color: #0d1117;
 }

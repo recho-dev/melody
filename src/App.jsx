@@ -14,6 +14,8 @@ const initialCode = `function setup() {
 function App() {
   const [code, setCode] = useState(initialCode);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [key, setKey] = useState(0);
   const appRef = useRef(null);
 
   const toggleFullscreen = () => {
@@ -24,6 +26,22 @@ function App() {
   function onSave(code) {
     setCode(code);
   }
+
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      if (event.key === "o" && event.metaKey) {
+        event.preventDefault();
+        setShowPreview(!showPreview);
+        setKey(key + 1);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [showPreview, key]);
+
+  useEffect(() => {
+    setKey(key + 1);
+  }, [isFullscreen]);
 
   useEffect(() => {
     const onKeyDown = (event) => {
@@ -63,8 +81,16 @@ function App() {
         <div className="h-full w-1/2 relative pt-2">
           <Editor code={code} onSave={onSave} style={{height: "100%"}} isFullscreen={isFullscreen} />
         </div>
-        <div className="h-full w-1/2 gh-border-left p-2">
-          <Sketch code={code} />
+        <div
+          className={cn(
+            showPreview
+              ? `w-full absolute ${
+                  isFullscreen ? "top-0" : "top-[64px]"
+                } left-0 bottom-0 right-0 flex gh-bg-secondary z-999`
+              : "h-full w-1/2 gh-border-left p-2"
+          )}
+        >
+          <Sketch code={code} key={key} />
         </div>
       </main>
     </div>

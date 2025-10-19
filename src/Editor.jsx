@@ -2,13 +2,13 @@ import {useRef, useEffect} from "react";
 import {createEditor} from "./createEditor.js";
 import "./editor.css";
 
-export function Editor({code, onSave, isFullscreen, ...props}) {
+export function Editor({code, onSave, isFullscreen, onTogglePreview, ...props}) {
   const containerRef = useRef(null);
   const editorRef = useRef(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
-    editorRef.current = createEditor(containerRef.current, {initialCode: code, onSave});
+    editorRef.current = createEditor(containerRef.current, {initialCode: code, onSave, onTogglePreview});
     const resizeObserver = new ResizeObserver(() => editorRef.current.resize());
     resizeObserver.observe(containerRef.current);
     return () => {

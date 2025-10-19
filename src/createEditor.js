@@ -119,9 +119,12 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
   }
 
   function resize() {
-    gutterWidth = editorParent.querySelector(".cm-gutters").offsetWidth;
-    bgParent.style.left = `${gutterWidth}px`;
-    bgParent.style.width = `calc(100% - ${gutterWidth}px)`;
+    const gutter = editorParent.querySelector(".cm-gutters");
+    if (gutter) {
+      gutterWidth = gutter.offsetWidth;
+      bgParent.style.left = `${gutterWidth}px`;
+      bgParent.style.width = `calc(100% - ${gutterWidth}px)`;
+    }
     if (piano) {
       piano.resize();
       const cursorPos = editor.state.selection.main.head;
