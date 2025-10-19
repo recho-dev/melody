@@ -119,6 +119,9 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
 
   return {
     editor,
+    resize: () => {
+      // TODO: resize the piano
+    },
     destroy: () => {
       editor.destroy();
       bgParent.remove();

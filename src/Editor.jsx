@@ -6,8 +6,12 @@ export function Editor({code, onSave, ...props}) {
   const editorRef = useRef(null);
   useEffect(() => {
     if (!editorRef.current) return;
-    const {destroy} = createEditor(editorRef.current, {initialCode: code, onSave});
-    return () => destroy();
+    const editor = createEditor(editorRef.current, {initialCode: code, onSave});
+    const resizeObserver = new ResizeObserver(() => editor.resize());
+    resizeObserver.observe(editorRef.current);
+    return () => {
+      editor.destroy();
+    };
   }, []);
   return <div ref={editorRef} {...props} />;
 }
