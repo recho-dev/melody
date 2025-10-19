@@ -39,19 +39,19 @@ export function createPiano({parent}) {
   }
   const timeNotes = d3.groups(notes, (d) => d.startTime);
 
+  // Draw the piano
   const width = parent.offsetWidth;
   const height = parent.offsetHeight;
   const X = notes.map((d) => d.startTime);
-  const R = notes.map((d) => d.midiNote);
-  const domainX = d3.extent(X);
-  const xScale = d3.scaleLinear(domainX, [0, (width * numScreens) / 6]);
-  const rScale = d3.scaleRadial(d3.extent(R), [10, 20]);
+  const R = notes.map((d) => d.velocity);
+  const xScale = d3.scaleLinear(d3.extent(X), [0, (width * numScreens) / 5]);
+  const rScale = d3.scaleRadial(d3.extent(R), [5, 20]);
 
   const svg = d3.select(parent).append("svg").attr("width", width).attr("height", height);
-
   const g = svg.append("g").attr("transform", `translate(0, 0)`);
+  const g2 = g.append("g").attr("transform", `translate(0, 0)`);
 
-  const circles = g
+  const circles = g2
     .selectAll("circle")
     .data(notes)
     .join("circle")
@@ -60,16 +60,18 @@ export function createPiano({parent}) {
     .attr("r", (d) => rScale(d.velocity))
     .attr("fill", "#36334280");
 
-  // let transition;
   let index = 0;
   let lastTime = Date.now();
 
   return {
     moveTo(coords, offset) {
       const {offsetX, offsetY} = offset;
-      const {left, top, bottom, right} = coords;
+      const {top, bottom, right} = coords;
       const middleY = (top - bottom) / 2;
-      g.attr("transform", `translate(${right - offsetX + 30}, ${top - offsetY - middleY})`);
+      g.transition()
+        .duration(200)
+        .ease(d3.easeCubicOut)
+        .attr("transform", `translate(${right - offsetX + 30}, ${top - offsetY - middleY})`);
     },
     async play() {
       const diff = Date.now() - lastTime;
@@ -86,48 +88,45 @@ export function createPiano({parent}) {
       }
       index++;
 
-      // // Translate the notes
-      // const duration = Math.max(500, diff);
-      // const transformX = xScale(startTime);
+      // Translate the notes
+      const duration = Math.min(500, diff);
+      const transformX = xScale(startTime);
 
-      // transition = g
-      //   .transition()
-      //   .duration(duration)
-      //   .ease(d3.easeCubicOut)
-      //   .attr("transform", `translate(${-transformX}, 0)`);
+      g2.transition().duration(duration).ease(d3.easeCubicOut).attr("transform", `translate(${-transformX}, 0)`);
 
-      // // Scale animation
-      // circles
-      //   .filter((d) => {
-      //     const cx = xScale(d.startTime);
-      //     const x = cx - transformX;
-      //     return x >= 0 && x <= width;
-      //   })
-      //   .transition()
-      //   .duration(100)
-      //   .ease(d3.easeCubicOut)
-      //   .attr("r", (d) => {
-      //     const cx = xScale(d.startTime);
-      //     const x = cx - transformX;
-      //     const t = 1 - x / width;
-      //     return rScale(d.velocity) * (1 + t ** 2 * 1.2);
-      //   })
-      //   .transition()
-      //   .duration(100)
-      //   .ease(d3.easeCubicOut)
-      //   .attr("r", (d) => rScale(d.velocity));
+      // Scale animation
+      circles
+        .filter((d) => {
+          const cx = xScale(d.startTime);
+          const x = cx - transformX;
+          return x >= 0 && x <= width;
+        })
+        .transition()
+        .duration(100)
+        .ease(d3.easeCubicOut)
+        .attr("r", (d) => {
+          const cx = xScale(d.startTime);
+          const x = cx - transformX;
+          const t = 1 - x / width;
+          return rScale(d.velocity) * (1 + t ** 2);
+        })
+        .transition()
+        .duration(100)
+        .ease(d3.easeCubicOut)
+        .attr("r", (d) => rScale(d.velocity));
 
-      // // Fade out animation
-      // circles
-      //   .filter((d) => {
-      //     const cx = xScale(d.startTime);
-      //     const x = cx - transformX;
-      //     return x <= 0 && x >= -width / 2;
-      //   })
-      //   .transition()
-      //   .duration(100)
-      //   .ease(d3.easeCubicOut)
-      //   .attr("r", 0);
+      // Fade out animation
+      circles
+        .filter((d) => {
+          const cx = xScale(d.startTime);
+          const x = cx - transformX;
+          if (d.startTime < startTime && x >= -width / 2) return true;
+          return false;
+        })
+        .transition()
+        .duration(100)
+        .ease(d3.easeCubicOut)
+        .attr("r", 0);
     },
   };
 }
