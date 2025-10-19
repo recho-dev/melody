@@ -170,7 +170,37 @@ export function createPiano({parent, gutterWidth}) {
   let lastTime = Date.now();
   let currentCoords;
   let initialX = 0;
+
   let start = false;
+  let isAutoPlaying = false;
+  let inactivityTimer = null;
+  let autoPlayInterval = null;
+  const INACTIVITY_TIMEOUT = 4000;
+
+  function startAutoPlay() {
+    if (!isAutoPlaying && start) {
+      isAutoPlaying = true;
+      autoPlayInterval = setInterval(() => {
+        play();
+      }, 2000);
+    }
+  }
+
+  function stopAutoPlay() {
+    if (isAutoPlaying) {
+      isAutoPlaying = false;
+      clearInterval(autoPlayInterval);
+      autoPlayInterval = null;
+    }
+  }
+
+  function resetInactivityTimer() {
+    clearTimeout(inactivityTimer);
+    stopAutoPlay();
+    inactivityTimer = setTimeout(() => {
+      startAutoPlay();
+    }, INACTIVITY_TIMEOUT);
+  }
 
   resize();
 
@@ -239,11 +269,14 @@ export function createPiano({parent, gutterWidth}) {
     destroy() {
       timer.stop();
       Matter.Engine.clear(engine);
+      stopAutoPlay();
+      clearTimeout(inactivityTimer);
     },
     moveDown() {
       initialX += 20;
       const [, , bottomWall] = walls;
       Matter.Body.setPosition(bottomWall, {x: bottomWall.position.x, y: bottomWall.position.y + 20});
+      resetInactivityTimer();
     },
     moveTo(coords) {
       currentCoords = coords;
@@ -256,7 +289,11 @@ export function createPiano({parent, gutterWidth}) {
         .duration(200)
         .ease(d3.easeCubicOut)
         .attr("transform", `translate(${currentX}, ${currentY})`);
+      resetInactivityTimer();
     },
-    play,
+    play() {
+      resetInactivityTimer();
+      return play();
+    },
   };
 }
