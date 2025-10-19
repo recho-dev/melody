@@ -119,6 +119,9 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
 
   return {
     editor,
+    updateFontSize: (fontSize) => {
+      editor.dom.style.fontSize = fontSize;
+    },
     resize: () => {
       // TODO: resize the piano
     },

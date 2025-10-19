@@ -61,7 +61,7 @@ function App() {
       )}
       <main className={cn("flex h-[calc(100vh-64px)]", isFullscreen && "h-full", "main")}>
         <div className="h-full w-1/2 relative">
-          <Editor code={code} onSave={onSave} style={{height: "100%"}} />
+          <Editor code={code} onSave={onSave} style={{height: "100%"}} isFullscreen={isFullscreen} />
         </div>
         <div className="h-full w-1/2 gh-border-left">
           <Sketch code={code} />
