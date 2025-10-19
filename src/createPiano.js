@@ -10,13 +10,13 @@ function midiToFrequency(midi) {
 }
 
 export function createPiano({parent, gutterWidth}) {
-  const svgParent = document.createElement("div");
-  parent.appendChild(svgParent);
-  svgParent.className = "svg-parent";
-
   const canvasParent = document.createElement("div");
   parent.appendChild(canvasParent);
   canvasParent.className = "canvas-parent";
+
+  const svgParent = document.createElement("div");
+  parent.appendChild(svgParent);
+  svgParent.className = "svg-parent";
 
   // @ref https://tonejs.github.io/examples/polySynth
   const synth = new Tone.PolySynth(Tone.Synth, {
@@ -61,6 +61,8 @@ export function createPiano({parent, gutterWidth}) {
   const cursorGroup = svg.append("g").attr("transform", `translate(0, 0)`);
   const notesGroup = cursorGroup.append("g").attr("transform", `translate(0, 0)`);
 
+  const PANEL_HEIGHT = 20;
+
   const circles = notesGroup
     .selectAll("circle")
     .data(notes)
@@ -69,6 +71,21 @@ export function createPiano({parent, gutterWidth}) {
     .attr("cy", 0)
     .attr("r", (d) => rScale(d.velocity))
     .attr("fill", "#36334280");
+
+  // Draw a percentage number
+  const pText = svg
+    .append("text")
+    .attr("x", width - 20)
+    .attr("y", height - PANEL_HEIGHT - 20)
+    .attr("text-anchor", "end")
+    .attr("dominant-baseline", "text-bottom")
+    .attr("font-size", "100px")
+    .attr("fill", "#21222C")
+    .attr("stroke", "#0d1117")
+    .attr("stroke-width", 1)
+    .attr("font-weight", "bold")
+    .attr("font-family", "monospace")
+    .text("0%");
 
   // Draw the notes
   const engine = Matter.Engine.create();
@@ -163,14 +180,18 @@ export function createPiano({parent, gutterWidth}) {
 
       // Play the piano
       if (Tone.getContext().state !== "running") await Tone.start();
-      if (index >= timeNotes.length) index = 0;
-      const [, notes] = timeNotes[index];
+      const i = index % timeNotes.length;
+      const [, notes] = timeNotes[i];
       for (const note of notes) {
         const frequency = midiToFrequency(note.midiNote);
         const normalizedVelocity = note.velocity / 127; // Normalize velocity to 0-1
         synth.triggerAttackRelease(frequency, note.duration, Tone.now(), normalizedVelocity);
       }
       index++;
+
+      // Update the percentage text
+      const percentage = Math.floor((index / timeNotes.length) * 100);
+      pText.text(`${percentage}%`);
 
       // Add falling notes
       for (const note of notes) {
@@ -182,7 +203,7 @@ export function createPiano({parent, gutterWidth}) {
 
       // Translate the notes
       const duration = Math.min(500, diff);
-      const nextNote = timeNotes[(index + 1) % timeNotes.length];
+      const nextNote = timeNotes[(i + 1) % timeNotes.length];
       const nextStartTime = nextNote[0];
       const transformX = xScale(nextStartTime);
 
@@ -212,19 +233,6 @@ export function createPiano({parent, gutterWidth}) {
         .duration(100)
         .ease(d3.easeCubicOut)
         .attr("r", (d) => rScale(d.velocity));
-
-      // Fade out animation
-      // circles
-      //   .filter((d) => {
-      //     const cx = xScale(d.startTime);
-      //     const x = cx - transformX;
-      //     if (d.startTime < startTime && x >= 0) return true;
-      //     return false;
-      //   })
-      //   .transition()
-      //   .duration(100)
-      //   .ease(d3.easeCubicOut)
-      //   .attr("r", 0);
     },
   };
 }
