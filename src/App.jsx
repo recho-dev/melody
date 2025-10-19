@@ -2,7 +2,6 @@ import "./App.css";
 import {useState, useEffect, useRef} from "react";
 import {Editor} from "./Editor.jsx";
 import {Sketch} from "./Sketch.jsx";
-import {createPiano} from "./createPiano.js";
 import {Maximize} from "lucide-react";
 import {cn} from "./utils.js";
 
@@ -15,8 +14,6 @@ const initialCode = `function setup() {
 function App() {
   const [code, setCode] = useState(initialCode);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const pianoRef = useRef(null);
-  const vizRef = useRef(null);
   const appRef = useRef(null);
 
   const toggleFullscreen = () => {
@@ -26,14 +23,6 @@ function App() {
 
   function onSave(code) {
     setCode(code);
-  }
-
-  function onKeyDown() {
-    pianoRef.current.play();
-  }
-
-  function onCursorChange(cursorPos) {
-    pianoRef.current.moveTo(cursorPos);
   }
 
   useEffect(() => {
@@ -46,12 +35,6 @@ function App() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [code]);
-
-  useEffect(() => {
-    if (!pianoRef.current && vizRef.current) {
-      pianoRef.current = createPiano({parent: vizRef.current});
-    }
-  }, []);
 
   useEffect(() => {
     const exitFullscreen = () => {
@@ -78,16 +61,7 @@ function App() {
       )}
       <main className={cn("flex h-[calc(100vh-64px)]", isFullscreen && "h-full", "main")}>
         <div className="h-full w-1/2 relative">
-          <div ref={vizRef} className="absolute top-0 left-0 w-full h-full"></div>
-          <div className="pt-2 h-full w-full">
-            <Editor
-              code={code}
-              onSave={onSave}
-              onKeyDown={onKeyDown}
-              onCursorChange={onCursorChange}
-              style={{height: "100%"}}
-            />
-          </div>
+          <Editor code={code} onSave={onSave} style={{height: "100%"}} />
         </div>
         <div className="h-full w-1/2 gh-border-left">
           <Sketch code={code} />

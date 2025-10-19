@@ -39,38 +39,38 @@ export function createPiano({parent}) {
   }
   const timeNotes = d3.groups(notes, (d) => d.startTime);
 
-  // const width = parent.offsetWidth;
-  // const height = parent.offsetHeight;
-  // const padding = 40;
-  // const X = notes.map((d) => d.startTime);
-  // const Y = notes.map((d) => d.midiNote);
-  // const R = notes.map((d) => d.midiNote);
-  // const domainX = d3.extent(X);
-  // const domainY = d3.extent(Y);
-  // const xScale = d3.scaleLinear(domainX, [padding, (width * numScreens) / 6 - padding]);
-  // const colorScale = d3.scaleSequential(d3.interpolateWarm).domain(domainY);
-  // const rScale = d3.scaleRadial(d3.extent(R), [(height / 2) * 0.3, (height / 2) * 0.8]);
+  const width = parent.offsetWidth;
+  const height = parent.offsetHeight;
+  const X = notes.map((d) => d.startTime);
+  const R = notes.map((d) => d.midiNote);
+  const domainX = d3.extent(X);
+  const xScale = d3.scaleLinear(domainX, [0, (width * numScreens) / 6]);
+  const rScale = d3.scaleRadial(d3.extent(R), [10, 20]);
 
-  // const svg = d3.select(parent).append("svg").attr("width", width).attr("height", height);
+  const svg = d3.select(parent).append("svg").attr("width", width).attr("height", height);
 
-  // const g = svg.append("g").attr("transform", `translate(0, 0)`);
+  const g = svg.append("g").attr("transform", `translate(0, 0)`);
 
-  // const circles = g
-  //   .selectAll("circle")
-  //   .data(notes)
-  //   .join("circle")
-  //   .attr("cx", (d) => xScale(d.startTime))
-  //   .attr("cy", height / 2)
-  //   .attr("r", (d) => rScale(d.velocity))
-  //   .attr("fill", (d) => colorScale(d.midiNote))
-  //   .attr("fill-opacity", 0.9);
+  const circles = g
+    .selectAll("circle")
+    .data(notes)
+    .join("circle")
+    .attr("cx", (d) => xScale(d.startTime))
+    .attr("cy", 0)
+    .attr("r", (d) => rScale(d.velocity))
+    .attr("fill", "#36334280");
 
   // let transition;
   let index = 0;
   let lastTime = Date.now();
 
   return {
-    moveTo() {},
+    moveTo(coords, offset) {
+      const {offsetX, offsetY} = offset;
+      const {left, top, bottom, right} = coords;
+      const middleY = (top - bottom) / 2;
+      g.attr("transform", `translate(${right - offsetX + 30}, ${top - offsetY - middleY})`);
+    },
     async play() {
       const diff = Date.now() - lastTime;
       lastTime = Date.now();

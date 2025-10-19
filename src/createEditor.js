@@ -8,6 +8,7 @@ import {tags as t} from "@lezer/highlight";
 import * as eslint from "eslint-linter-browserify";
 import {linter} from "@codemirror/lint";
 import {browser} from "globals";
+import {createPiano} from "./createPiano.js";
 
 const eslintConfig = {
   languageOptions: {
@@ -23,14 +24,21 @@ const eslintConfig = {
 
 Vim.map("jj", "<Esc>", "insert");
 
-function createEditor(
-  parent,
-  {initialCode = "", onChange = () => {}, onSave = () => {}, onKeyDown = () => {}, onCursorChange = () => {}} = {}
-) {
+function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
+  parent.style.position = "relative";
+
+  const bgParent = document.createElement("div");
+  parent.appendChild(bgParent);
+  bgParent.className = "bg-parent";
+
+  const editorParent = document.createElement("div");
+  editorParent.className = "editor-parent";
+  parent.appendChild(editorParent);
+
   const editor = new EditorView({
-    parent,
+    parent: editorParent,
     extensions: [
-      EditorView.domEventHandlers({keydown: onKeyDown}),
+      EditorView.domEventHandlers({keydown: handleKeyDown}),
       vim({status: true}),
       basicSetup,
       javascript(),
@@ -41,7 +49,6 @@ function createEditor(
         ],
       }),
       EditorView.updateListener.of(handleCursorChange),
-      EditorView.updateListener.of(handleChange),
       EditorView.theme({
         "&": {fontSize: "14px", fontFamily: "monospace", height: "100%"},
       }),
@@ -61,21 +68,35 @@ function createEditor(
     doc: initialCode,
   });
 
-  function handleChange(update) {
-    if (update.docChanged) onChange(editor.state.doc.toString());
+  const piano = createPiano({parent: bgParent});
+
+  movePianoToCursor(0);
+
+  function handleKeyDown() {
+    piano.play();
+  }
+
+  function movePianoToCursor(cursorPos) {
+    const coords = editor.coordsAtPos(cursorPos);
+    const bbox = editorParent.getBoundingClientRect();
+    const offset = {offsetX: bbox.left, offsetY: bbox.top};
+    piano.moveTo(coords, offset);
   }
 
   function handleCursorChange(update) {
     if (update.selectionSet) {
       const cursorPos = update.state.selection.main.head;
-      const coords = update.view.coordsAtPos(cursorPos);
-      onCursorChange(coords);
+      movePianoToCursor(cursorPos);
     }
   }
 
   return {
     editor,
-    destroy: () => editor.destroy(),
+    destroy: () => {
+      editor.destroy();
+      bgParent.remove();
+      editorParent.remove();
+    },
   };
 }
 
