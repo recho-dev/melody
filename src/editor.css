@@ -32,3 +32,7 @@
 .cm-focused {
   outline: none !important;
 }
+
+.cm-editor {
+  background-color: transparent !important;
+}

@@ -23,7 +23,10 @@ const eslintConfig = {
 
 Vim.map("jj", "<Esc>", "insert");
 
-function createEditor(parent, {initialCode = "", onChange = () => {}, onSave = () => {}, onKeyDown = () => {}} = {}) {
+function createEditor(
+  parent,
+  {initialCode = "", onChange = () => {}, onSave = () => {}, onKeyDown = () => {}, onCursorChange = () => {}} = {}
+) {
   const editor = new EditorView({
     parent,
     extensions: [
@@ -37,6 +40,7 @@ function createEditor(parent, {initialCode = "", onChange = () => {}, onSave = (
           {tag: [t.function(t.variableName)], color: "#d2a8ff"},
         ],
       }),
+      EditorView.updateListener.of(handleCursorChange),
       EditorView.updateListener.of(handleChange),
       EditorView.theme({
         "&": {fontSize: "14px", fontFamily: "monospace", height: "100%"},
@@ -56,9 +60,19 @@ function createEditor(parent, {initialCode = "", onChange = () => {}, onSave = (
     ],
     doc: initialCode,
   });
+
   function handleChange(update) {
     if (update.docChanged) onChange(editor.state.doc.toString());
   }
+
+  function handleCursorChange(update) {
+    if (update.selectionSet) {
+      const cursorPos = update.state.selection.main.head;
+      const coords = update.view.coordsAtPos(cursorPos);
+      onCursorChange(coords);
+    }
+  }
+
   return {
     editor,
     destroy: () => editor.destroy(),

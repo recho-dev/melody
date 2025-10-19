@@ -39,37 +39,38 @@ export function createPiano({parent}) {
   }
   const timeNotes = d3.groups(notes, (d) => d.startTime);
 
-  const width = parent.offsetWidth;
-  const height = parent.offsetHeight;
-  const padding = 40;
-  const X = notes.map((d) => d.startTime);
-  const Y = notes.map((d) => d.midiNote);
-  const R = notes.map((d) => d.midiNote);
-  const domainX = d3.extent(X);
-  const domainY = d3.extent(Y);
-  const xScale = d3.scaleLinear(domainX, [padding, (width * numScreens) / 6 - padding]);
-  const colorScale = d3.scaleSequential(d3.interpolateWarm).domain(domainY);
-  const rScale = d3.scaleRadial(d3.extent(R), [(height / 2) * 0.3, (height / 2) * 0.8]);
+  // const width = parent.offsetWidth;
+  // const height = parent.offsetHeight;
+  // const padding = 40;
+  // const X = notes.map((d) => d.startTime);
+  // const Y = notes.map((d) => d.midiNote);
+  // const R = notes.map((d) => d.midiNote);
+  // const domainX = d3.extent(X);
+  // const domainY = d3.extent(Y);
+  // const xScale = d3.scaleLinear(domainX, [padding, (width * numScreens) / 6 - padding]);
+  // const colorScale = d3.scaleSequential(d3.interpolateWarm).domain(domainY);
+  // const rScale = d3.scaleRadial(d3.extent(R), [(height / 2) * 0.3, (height / 2) * 0.8]);
 
-  const svg = d3.select(parent).append("svg").attr("width", width).attr("height", height);
+  // const svg = d3.select(parent).append("svg").attr("width", width).attr("height", height);
 
-  const g = svg.append("g").attr("transform", `translate(0, 0)`);
+  // const g = svg.append("g").attr("transform", `translate(0, 0)`);
 
-  const circles = g
-    .selectAll("circle")
-    .data(notes)
-    .join("circle")
-    .attr("cx", (d) => xScale(d.startTime))
-    .attr("cy", height / 2)
-    .attr("r", (d) => rScale(d.velocity))
-    .attr("fill", (d) => colorScale(d.midiNote))
-    .attr("fill-opacity", 0.9);
+  // const circles = g
+  //   .selectAll("circle")
+  //   .data(notes)
+  //   .join("circle")
+  //   .attr("cx", (d) => xScale(d.startTime))
+  //   .attr("cy", height / 2)
+  //   .attr("r", (d) => rScale(d.velocity))
+  //   .attr("fill", (d) => colorScale(d.midiNote))
+  //   .attr("fill-opacity", 0.9);
 
-  let transition;
+  // let transition;
   let index = 0;
   let lastTime = Date.now();
 
   return {
+    moveTo() {},
     async play() {
       const diff = Date.now() - lastTime;
       lastTime = Date.now();
@@ -85,48 +86,48 @@ export function createPiano({parent}) {
       }
       index++;
 
-      // Translate the notes
-      const duration = Math.max(500, diff);
-      const transformX = xScale(startTime);
+      // // Translate the notes
+      // const duration = Math.max(500, diff);
+      // const transformX = xScale(startTime);
 
-      transition = g
-        .transition()
-        .duration(duration)
-        .ease(d3.easeCubicOut)
-        .attr("transform", `translate(${-transformX}, 0)`);
+      // transition = g
+      //   .transition()
+      //   .duration(duration)
+      //   .ease(d3.easeCubicOut)
+      //   .attr("transform", `translate(${-transformX}, 0)`);
 
-      // Scale animation
-      circles
-        .filter((d) => {
-          const cx = xScale(d.startTime);
-          const x = cx - transformX;
-          return x >= 0 && x <= width;
-        })
-        .transition()
-        .duration(100)
-        .ease(d3.easeCubicOut)
-        .attr("r", (d) => {
-          const cx = xScale(d.startTime);
-          const x = cx - transformX;
-          const t = 1 - x / width;
-          return rScale(d.velocity) * (1 + t ** 2 * 1.2);
-        })
-        .transition()
-        .duration(100)
-        .ease(d3.easeCubicOut)
-        .attr("r", (d) => rScale(d.velocity));
+      // // Scale animation
+      // circles
+      //   .filter((d) => {
+      //     const cx = xScale(d.startTime);
+      //     const x = cx - transformX;
+      //     return x >= 0 && x <= width;
+      //   })
+      //   .transition()
+      //   .duration(100)
+      //   .ease(d3.easeCubicOut)
+      //   .attr("r", (d) => {
+      //     const cx = xScale(d.startTime);
+      //     const x = cx - transformX;
+      //     const t = 1 - x / width;
+      //     return rScale(d.velocity) * (1 + t ** 2 * 1.2);
+      //   })
+      //   .transition()
+      //   .duration(100)
+      //   .ease(d3.easeCubicOut)
+      //   .attr("r", (d) => rScale(d.velocity));
 
-      // Fade out animation
-      circles
-        .filter((d) => {
-          const cx = xScale(d.startTime);
-          const x = cx - transformX;
-          return x <= 0 && x >= -width / 2;
-        })
-        .transition()
-        .duration(100)
-        .ease(d3.easeCubicOut)
-        .attr("r", 0);
+      // // Fade out animation
+      // circles
+      //   .filter((d) => {
+      //     const cx = xScale(d.startTime);
+      //     const x = cx - transformX;
+      //     return x <= 0 && x >= -width / 2;
+      //   })
+      //   .transition()
+      //   .duration(100)
+      //   .ease(d3.easeCubicOut)
+      //   .attr("r", 0);
     },
   };
 }

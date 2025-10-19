@@ -27,8 +27,12 @@ function App() {
     setCode(code);
   }
 
-  function onKeyDown(code) {
+  function onKeyDown() {
     pianoRef.current.play();
+  }
+
+  function onCursorChange(cursorPos) {
+    pianoRef.current.moveTo(cursorPos);
   }
 
   useEffect(() => {
@@ -72,10 +76,16 @@ function App() {
         )}
       </header>
       <main className="flex h-[calc(100vh-64px)]">
-        <div className="h-full w-1/2">
-          <div ref={vizRef} className="h-[50px] gh-border-bottom"></div>
-          <div className="py-2 h-full">
-            <Editor code={code} onSave={onSave} onKeyDown={onKeyDown} style={{height: "100%"}} />
+        <div className="h-full w-1/2 relative">
+          <div ref={vizRef} className="absolute top-0 left-0 w-full h-full"></div>
+          <div className="py-2 h-full w-full">
+            <Editor
+              code={code}
+              onSave={onSave}
+              onKeyDown={onKeyDown}
+              onCursorChange={onCursorChange}
+              style={{height: "100%"}}
+            />
           </div>
         </div>
         <div className="h-full w-1/2 gh-border-left">
