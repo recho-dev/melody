@@ -1,5 +1,34 @@
 @import "tailwindcss" reference;
 
+.editor-parent {
+  width: 100%;
+  height: 100%;
+}
+
+.bg-parent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.svg-parent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.canvas-parent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
 .cm-editor {
   .cm-content,
   .cm-lineNumbers,
@@ -34,5 +63,13 @@
 }
 
 .cm-editor {
-  border-right: 1px solid var(--gh-border) !important;
+  background-color: transparent !important;
+}
+
+.cm-activeLine {
+  background-color: transparent !important;
+}
+
+.cm-activeLineGutter {
+  background-color: transparent !important;
 }

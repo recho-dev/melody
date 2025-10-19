@@ -10,6 +10,18 @@
   color: rgb(240, 246, 252);
 }
 
-.gh-border-top {
-  border-top: 1px solid rgb(61, 68, 77);
+.gh-border-bottom {
+  border-bottom: 1px solid rgb(61, 68, 77);
+}
+
+.gh-border-left {
+  border-left: 1px solid rgb(61, 68, 77);
+}
+
+.gh-bg-secondary {
+  background-color: #0d1117;
+}
+
+.main {
+  background-color: #0d1117;
 }

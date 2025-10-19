@@ -2,12 +2,23 @@ import {useRef, useEffect} from "react";
 import {createEditor} from "./createEditor.js";
 import "./editor.css";
 
-export function Editor({code, onChange, onSave, onKeyDown, ...props}) {
+export function Editor({code, onSave, isFullscreen, onTogglePreview, ...props}) {
+  const containerRef = useRef(null);
   const editorRef = useRef(null);
+
   useEffect(() => {
-    if (!editorRef.current) return;
-    const {destroy} = createEditor(editorRef.current, {initialCode: code, onChange, onSave, onKeyDown});
-    return () => destroy();
+    if (!containerRef.current) return;
+    editorRef.current = createEditor(containerRef.current, {initialCode: code, onSave, onTogglePreview});
+    const resizeObserver = new ResizeObserver(() => editorRef.current.resize());
+    resizeObserver.observe(containerRef.current);
+    return () => {
+      editorRef.current.destroy();
+    };
   }, []);
-  return <div ref={editorRef} {...props} />;
+
+  useEffect(() => {
+    editorRef.current.updateFontSize(isFullscreen ? "16px" : "14px");
+  }, [isFullscreen]);
+
+  return <div ref={containerRef} {...props} />;
 }

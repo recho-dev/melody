@@ -61,6 +61,12 @@ export function Sketch({code}) {
             });
           </script>
           <script src="https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/p5.js"></script>
+          <style>
+            * {
+              margin: 0;
+              padding: 0;
+            }
+          </style>
         </head>
         <body>
           <script>
