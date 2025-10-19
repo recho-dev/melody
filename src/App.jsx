@@ -4,6 +4,7 @@ import {Editor} from "./Editor.jsx";
 import {Sketch} from "./Sketch.jsx";
 import {createPiano} from "./createPiano.js";
 import {Maximize} from "lucide-react";
+import {cn} from "./utils.js";
 
 const initialCode = `function setup() {
   createCanvas(200, 200);
@@ -63,9 +64,9 @@ function App() {
 
   return (
     <div className="min-h-screen" ref={appRef}>
-      <header className="h-[64px] gh-header gh-box-shadow gh-text-primary flex items-center justify-between">
-        <h1 className="ml-4 font-bold"> Recho Melody </h1>
-        {!isFullscreen && (
+      {!isFullscreen && (
+        <header className="h-[64px] gh-header gh-box-shadow gh-text-primary flex items-center justify-between">
+          <h1 className="ml-4 font-bold"> Recho Melody </h1>
           <button
             onClick={toggleFullscreen}
             className="mr-4 p-2 hover:bg-gray-800 rounded-md transition-colors cursor-pointer"
@@ -73,12 +74,12 @@ function App() {
           >
             <Maximize className="w-5 h-5" />
           </button>
-        )}
-      </header>
-      <main className="flex h-[calc(100vh-64px)]">
+        </header>
+      )}
+      <main className={cn("flex h-[calc(100vh-64px)]", isFullscreen && "h-full", "main")}>
         <div className="h-full w-1/2 relative">
           <div ref={vizRef} className="absolute top-0 left-0 w-full h-full"></div>
-          <div className="py-2 h-full w-full">
+          <div className="pt-2 h-full w-full">
             <Editor
               code={code}
               onSave={onSave}
