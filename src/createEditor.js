@@ -123,7 +123,7 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
       editor.dom.style.fontSize = fontSize;
     },
     resize: () => {
-      // TODO: resize the piano
+      piano.resize();
     },
     destroy: () => {
       editor.destroy();

@@ -63,7 +63,7 @@ function App() {
         <div className="h-full w-1/2 relative pt-2">
           <Editor code={code} onSave={onSave} style={{height: "100%"}} isFullscreen={isFullscreen} />
         </div>
-        <div className="h-full w-1/2 gh-border-left pt-2 pl-2">
+        <div className="h-full w-1/2 gh-border-left p-2">
           <Sketch code={code} />
         </div>
       </main>

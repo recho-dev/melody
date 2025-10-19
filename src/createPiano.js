@@ -147,12 +147,15 @@ export function createPiano({parent, gutterWidth}) {
     return [leftWall, rightWall, bottomWall];
   }
 
+  function resize() {}
+
   let index = 0;
   let t = 0;
   let lastTime = Date.now();
   let currentCoords;
 
   return {
+    resize,
     destroy() {
       timer.stop();
       Matter.Engine.clear(engine);
