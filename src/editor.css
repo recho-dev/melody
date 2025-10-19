@@ -13,6 +13,22 @@
   height: 100%;
 }
 
+.svg-parent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.canvas-parent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
 .cm-editor {
   .cm-content,
   .cm-lineNumbers,

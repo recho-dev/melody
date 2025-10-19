@@ -19,6 +19,7 @@
     "@lezer/highlight": "^1.2.1",
     "@replit/codemirror-vim": "^6.3.0",
     "@uiw/codemirror-theme-github": "^4.25.2",
+    "charmingjs": "^0.0.19",
     "codemirror": "^6.0.2",
     "d3": "^7.9.0",
     "eslint-linter-browserify": "^9.38.0",

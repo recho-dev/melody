@@ -35,6 +35,9 @@ importers:
       '@uiw/codemirror-theme-github':
         specifier: ^4.25.2
         version: 4.25.2(@codemirror/language@6.11.3)(@codemirror/state@6.5.2)(@codemirror/view@6.38.6)
+      charmingjs:
+        specifier: ^0.0.19
+        version: 0.0.19
       codemirror:
         specifier: ^6.0.2
         version: 6.0.2
@@ -729,6 +732,9 @@ packages:
   chalk@4.1.2:
     resolution: {integrity: sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==}
     engines: {node: '>=10'}
+
+  charmingjs@0.0.19:
+    resolution: {integrity: sha512-jGjGs/hdhSD+n4jq0ab/wexgqvzo3tCINZuM14XI6NKFmvUPrwRONVPbQI4huvOR5EPUgiKrn9J+FQ8KxnbJTg==}
 
   chownr@3.0.0:
     resolution: {integrity: sha512-+IxzY9BZOQd/XuYPRmrvEVjF/nqj5kgT4kEq7VofrDoM1MxoRjEWkrCC3EtLi59TVawxTAn+orJwFQcrqEN1+g==}
@@ -1889,6 +1895,8 @@ snapshots:
     dependencies:
       ansi-styles: 4.3.0
       supports-color: 7.2.0
+
+  charmingjs@0.0.19: {}
 
   chownr@3.0.0: {}
 

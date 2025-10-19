@@ -35,6 +35,7 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
   editorParent.className = "editor-parent";
   parent.appendChild(editorParent);
 
+  // Initialize the editor
   const editor = new EditorView({
     parent: editorParent,
     extensions: [
@@ -55,10 +56,12 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
       keymap.of([
         {
           key: "Mod-s",
-          run: (view) => {
-            onSave(view.state.doc.toString());
-            return true;
-          },
+          run: handleModS,
+          preventDefault: true,
+        },
+        {
+          key: "Mod-m",
+          run: handleModM,
           preventDefault: true,
         },
         indentWithTab,
@@ -68,19 +71,43 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
     doc: initialCode,
   });
 
-  const piano = createPiano({parent: bgParent});
+  // Initialize the piano
+  let piano;
+  let gutterWidth;
 
-  movePianoToCursor(0);
+  let timeout = setTimeout(() => {
+    gutterWidth = editorParent.querySelector(".cm-gutters").offsetWidth;
+    bgParent.style.left = `${gutterWidth}px`;
+    bgParent.style.width = `calc(100% - ${gutterWidth}px)`;
+    piano = createPiano({parent: bgParent});
+    movePianoToCursor(0);
+  }, 0);
 
   function handleKeyDown() {
     piano.play();
   }
 
+  function handleModS(view) {
+    onSave(view.state.doc.toString());
+    return true;
+  }
+
+  function handleModM() {
+    piano.moveDown();
+    return true;
+  }
+
   function movePianoToCursor(cursorPos) {
-    const coords = editor.coordsAtPos(cursorPos);
+    piano.moveTo(coordsAtPos(cursorPos));
+  }
+
+  function coordsAtPos(cursorPos) {
+    const {left, top, right, bottom} = editor.coordsAtPos(cursorPos);
     const bbox = editorParent.getBoundingClientRect();
-    const offset = {offsetX: bbox.left, offsetY: bbox.top};
-    piano.moveTo(coords, offset);
+    const bboxLeft = bbox.left + gutterWidth;
+    const bboxTop = bbox.top;
+    const coords = {left: left - bboxLeft, top: top - bboxTop, right: right - bboxLeft, bottom: bottom - bboxTop};
+    return coords;
   }
 
   function handleCursorChange(update) {
@@ -96,6 +123,8 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
       editor.destroy();
       bgParent.remove();
       editorParent.remove();
+      piano?.destroy();
+      clearTimeout(timeout);
     },
   };
 }

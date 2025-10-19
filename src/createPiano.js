@@ -1,5 +1,7 @@
 import * as Tone from "tone";
 import * as d3 from "d3";
+import * as cm from "charmingjs";
+import * as Matter from "matter-js";
 import BeethovenMoonlight from "./data/beethoven_moonlight.json";
 
 // Convert MIDI note number to frequency
@@ -7,7 +9,15 @@ function midiToFrequency(midi) {
   return Tone.Frequency(midi, "midi").toFrequency();
 }
 
-export function createPiano({parent}) {
+export function createPiano({parent, gutterWidth}) {
+  const svgParent = document.createElement("div");
+  parent.appendChild(svgParent);
+  svgParent.className = "svg-parent";
+
+  const canvasParent = document.createElement("div");
+  parent.appendChild(canvasParent);
+  canvasParent.className = "canvas-parent";
+
   // @ref https://tonejs.github.io/examples/polySynth
   const synth = new Tone.PolySynth(Tone.Synth, {
     oscillator: {
@@ -47,11 +57,11 @@ export function createPiano({parent}) {
   const xScale = d3.scaleLinear(d3.extent(X), [0, (width * numScreens) / 5]);
   const rScale = d3.scaleRadial(d3.extent(R), [5, 20]);
 
-  const svg = d3.select(parent).append("svg").attr("width", width).attr("height", height);
-  const g = svg.append("g").attr("transform", `translate(0, 0)`);
-  const g2 = g.append("g").attr("transform", `translate(0, 0)`);
+  const svg = d3.select(svgParent).append("svg").attr("width", width).attr("height", height);
+  const cursorGroup = svg.append("g").attr("transform", `translate(0, 0)`);
+  const notesGroup = cursorGroup.append("g").attr("transform", `translate(0, 0)`);
 
-  const circles = g2
+  const circles = notesGroup
     .selectAll("circle")
     .data(notes)
     .join("circle")
@@ -60,27 +70,101 @@ export function createPiano({parent}) {
     .attr("r", (d) => rScale(d.velocity))
     .attr("fill", "#36334280");
 
+  // Draw the notes
+  const engine = Matter.Engine.create();
+  const fallingNotes = [];
+  const walls = createWalls();
+  const ctx = cm.context2d({width, height, container: canvasParent});
+  const timer = d3.interval(update, 1000 / 60);
+
+  function colorScale(t) {
+    return d3.interpolateCool(t % 1);
+  }
+
+  function update() {
+    Matter.Engine.update(engine);
+    ctx.clearRect(0, 0, width, height);
+    for (const circle of fallingNotes) {
+      const {x, y} = circle.position;
+      const radius = circle.__radius__;
+      const fill = circle.__fill__;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, 2 * Math.PI);
+      ctx.fillStyle = fill;
+      ctx.fill();
+    }
+    // for (const wall of walls) {
+    //   const {x, y} = wall.position;
+    //   const width = wall.__width__;
+    //   const height = wall.__height__;
+    //   ctx.fillStyle = "red";
+    //   ctx.beginPath();
+    //   ctx.rect(x - width / 2, y - height / 2, width, height);
+    //   ctx.fill();
+    // }
+  }
+
+  function createNote(x, y, radius, fill) {
+    const note = Matter.Bodies.circle(x, y, radius);
+    note.__radius__ = radius;
+    note.__fill__ = fill;
+    Matter.Body.setVelocity(note, {x: 0, y: 1});
+    fallingNotes.push(note);
+    Matter.Composite.add(engine.world, note);
+    return note;
+  }
+
+  function createWall(x, y, width, height) {
+    const wall = Matter.Bodies.rectangle(x, y, width, height, {isStatic: true});
+    Matter.Composite.add(engine.world, wall);
+    wall.__width__ = width;
+    wall.__height__ = height;
+    return wall;
+  }
+
+  function createWalls() {
+    const scale = 100000;
+    const leftWall = createWall(-10 + 1, height / 2, 20, height * scale);
+    const rightWall = createWall(width + 10 - 1, height / 2, 20, height * scale);
+    const bottomWall = createWall(width / 2, height - 10 - 3, width, 20);
+    return [leftWall, rightWall, bottomWall];
+  }
+
   let index = 0;
+  let t = 0;
   let lastTime = Date.now();
+  let currentCoords;
 
   return {
-    moveTo(coords, offset) {
-      const {offsetX, offsetY} = offset;
+    destroy() {
+      timer.stop();
+      Matter.Engine.clear(engine);
+    },
+    moveDown() {
+      const [, , bottomWall] = walls;
+      Matter.Body.setPosition(bottomWall, {x: bottomWall.position.x, y: bottomWall.position.y + 20});
+    },
+    moveTo(coords) {
+      currentCoords = coords;
       const {top, bottom, right} = coords;
       const middleY = (top - bottom) / 2;
-      g.transition()
+      const currentX = right + 30;
+      const currentY = top - middleY;
+      cursorGroup
+        .transition()
         .duration(200)
         .ease(d3.easeCubicOut)
-        .attr("transform", `translate(${right - offsetX + 30}, ${top - offsetY - middleY})`);
+        .attr("transform", `translate(${currentX}, ${currentY})`);
     },
     async play() {
+      t += 0.01;
       const diff = Date.now() - lastTime;
       lastTime = Date.now();
 
       // Play the piano
       if (Tone.getContext().state !== "running") await Tone.start();
       if (index >= timeNotes.length) index = 0;
-      const [startTime, notes] = timeNotes[index];
+      const [, notes] = timeNotes[index];
       for (const note of notes) {
         const frequency = midiToFrequency(note.midiNote);
         const normalizedVelocity = note.velocity / 127; // Normalize velocity to 0-1
@@ -88,11 +172,25 @@ export function createPiano({parent}) {
       }
       index++;
 
+      // Add falling notes
+      for (const note of notes) {
+        const {left, top, right, bottom} = currentCoords;
+        const x = (left + right) / 2;
+        const y = bottom + 10;
+        createNote(x, y, rScale(note.velocity), colorScale(t));
+      }
+
       // Translate the notes
       const duration = Math.min(500, diff);
-      const transformX = xScale(startTime);
+      const nextNote = timeNotes[(index + 1) % timeNotes.length];
+      const nextStartTime = nextNote[0];
+      const transformX = xScale(nextStartTime);
 
-      g2.transition().duration(duration).ease(d3.easeCubicOut).attr("transform", `translate(${-transformX}, 0)`);
+      notesGroup
+        .transition()
+        .duration(duration)
+        .ease(d3.easeCubicOut)
+        .attr("transform", `translate(${-transformX}, 0)`);
 
       // Scale animation
       circles
@@ -116,17 +214,17 @@ export function createPiano({parent}) {
         .attr("r", (d) => rScale(d.velocity));
 
       // Fade out animation
-      circles
-        .filter((d) => {
-          const cx = xScale(d.startTime);
-          const x = cx - transformX;
-          if (d.startTime < startTime && x >= -width / 2) return true;
-          return false;
-        })
-        .transition()
-        .duration(100)
-        .ease(d3.easeCubicOut)
-        .attr("r", 0);
+      // circles
+      //   .filter((d) => {
+      //     const cx = xScale(d.startTime);
+      //     const x = cx - transformX;
+      //     if (d.startTime < startTime && x >= 0) return true;
+      //     return false;
+      //   })
+      //   .transition()
+      //   .duration(100)
+      //   .ease(d3.easeCubicOut)
+      //   .attr("r", 0);
     },
   };
 }
