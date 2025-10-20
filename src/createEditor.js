@@ -84,12 +84,14 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
     gutterObserver.observe(gutter);
   }, 0);
 
-  function handleKeyDown() {
+  function handleKeyDown(e) {
+    if (e.metaKey) return;
     piano.play();
   }
 
-  function handleModS(view) {
+  async function handleModS(view) {
     onSave(view.state.doc.toString());
+    piano.playSaveSound();
     return true;
   }
 

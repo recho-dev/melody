@@ -36,6 +36,11 @@ export function createPiano({parent, gutterWidth}) {
     },
   }).toDestination();
 
+  const snarePlayer = new Tone.Player({
+    url: "/sounds/kick.mp3",
+    autostart: false,
+  }).toDestination();
+
   // The format of the pieceData is [startTime, endTime, midiNote, velocity]
   const notes = [];
   const {pieceData, numScreens} = BeethovenMoonlight;
@@ -266,6 +271,10 @@ export function createPiano({parent, gutterWidth}) {
 
   return {
     resize,
+    async playSaveSound() {
+      if (Tone.getContext().state !== "running") await Tone.start();
+      snarePlayer.start();
+    },
     destroy() {
       timer.stop();
       Matter.Engine.clear(engine);
