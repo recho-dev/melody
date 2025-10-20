@@ -32,6 +32,10 @@ export function Sketch({code}) {
     const messageHandler = (event) => {
       if (event.data?.type === "iframe-error") {
         setError(new Error(event.data.message || event.data.reason || "Unknown error"));
+        window.dispatchEvent(new CustomEvent("sketch-error", {detail: event.data}));
+      }
+      if (event.data?.type === "iframe-ready") {
+        window.dispatchEvent(new CustomEvent("sketch-ready"));
       }
     };
     window.addEventListener("message", messageHandler);
@@ -72,6 +76,7 @@ export function Sketch({code}) {
           <script>
             try {
               ${code}
+              window.parent.postMessage({ type: 'iframe-ready' }, '*');
             } catch (err) {
               window.parent.postMessage({ type: 'iframe-error', message: err.message }, '*');
             }

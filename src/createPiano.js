@@ -9,7 +9,7 @@ function midiToFrequency(midi) {
   return Tone.Frequency(midi, "midi").toFrequency();
 }
 
-export function createPiano({parent, gutterWidth}) {
+export function createPiano({parent}) {
   const canvasParent = document.createElement("div");
   parent.appendChild(canvasParent);
   canvasParent.className = "canvas-parent";
@@ -36,9 +36,11 @@ export function createPiano({parent, gutterWidth}) {
     },
   }).toDestination();
 
-  const snarePlayer = new Tone.Player({
-    url: "/sounds/kick.mp3",
-    autostart: false,
+  const kit = new Tone.Players({
+    kick: "/sounds/kick.mp3",
+    snare: "/sounds/snare.mp3",
+    hh: "/sounds/hh.mp3",
+    hho: "/sounds/hho.mp3",
   }).toDestination();
 
   // The format of the pieceData is [startTime, endTime, midiNote, velocity]
@@ -271,9 +273,22 @@ export function createPiano({parent, gutterWidth}) {
 
   return {
     resize,
+    isStarted: () => start,
     async playSaveSound() {
       if (Tone.getContext().state !== "running") await Tone.start();
-      snarePlayer.start();
+      kit.player("kick").start();
+    },
+    async playSuccessSound() {
+      if (Tone.getContext().state !== "running") await Tone.start();
+      kit.player("snare").start();
+    },
+    async playFailureSound() {
+      if (Tone.getContext().state !== "running") await Tone.start();
+      kit.player("hho").start();
+    },
+    async playMoveSound() {
+      if (Tone.getContext().state !== "running") await Tone.start();
+      kit.player("hh").start();
     },
     destroy() {
       timer.stop();
