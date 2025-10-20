@@ -189,7 +189,6 @@ export function createPiano({parent}) {
       isAutoPlaying = true;
       autoPlayInterval = setInterval(() => {
         play();
-        if (!start) stopAutoPlay();
       }, 2000);
     }
   }
