@@ -88,6 +88,20 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
     }, 1000);
   };
 
+  const onPreviewShow = () => {
+    if (!piano) return;
+    piano.stop();
+  };
+
+  const onPreviewHide = () => {
+    if (!piano) return;
+    piano.resume();
+  };
+
+  window.addEventListener("preview-show", onPreviewShow);
+
+  window.addEventListener("preview-hide", onPreviewHide);
+
   window.addEventListener("sketch-ready", onSketchReady);
 
   window.addEventListener("sketch-error", onSketchError);
@@ -171,6 +185,8 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
       gutterObserver?.disconnect();
       window.removeEventListener("sketch-ready", onSketchReady);
       window.removeEventListener("sketch-error", onSketchError);
+      window.removeEventListener("preview-show", onPreviewShow);
+      window.removeEventListener("preview-hide", onPreviewHide);
     },
   };
 }
