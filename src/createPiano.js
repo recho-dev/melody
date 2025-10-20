@@ -271,24 +271,33 @@ export function createPiano({parent}) {
       .attr("r", (d) => rScale(d.velocity));
   }
 
+  async function playSound(name) {
+    if (Tone.getContext().state !== "running") await Tone.start();
+    kit.player(name).start();
+  }
+
   return {
     resize,
     isStarted: () => start,
+    stop() {
+      start = false;
+      stopAutoPlay();
+    },
+    resume() {
+      start = true;
+      resetInactivityTimer();
+    },
     async playSaveSound() {
-      if (Tone.getContext().state !== "running") await Tone.start();
-      kit.player("kick").start();
+      await playSound("kick");
     },
     async playSuccessSound() {
-      if (Tone.getContext().state !== "running") await Tone.start();
-      kit.player("snare").start();
+      await playSound("snare");
     },
     async playFailureSound() {
-      if (Tone.getContext().state !== "running") await Tone.start();
-      kit.player("hho").start();
+      await playSound("hho");
     },
     async playMoveSound() {
-      if (Tone.getContext().state !== "running") await Tone.start();
-      kit.player("hh").start();
+      await playSound("hh");
     },
     destroy() {
       timer.stop();

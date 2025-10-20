@@ -33,6 +33,11 @@ function App() {
         event.preventDefault();
         setShowPreview(!showPreview);
         setKey(key + 1);
+        if (!showPreview) {
+          window.dispatchEvent(new CustomEvent("preview-show"));
+        } else {
+          window.dispatchEvent(new CustomEvent("preview-hide"));
+        }
       }
     };
     window.addEventListener("keydown", onKeyDown);
