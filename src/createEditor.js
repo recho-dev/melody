@@ -71,6 +71,27 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
     doc: initialCode,
   });
 
+  // Listen for sketch ready event
+  const onSketchReady = () => {
+    if (!piano) return;
+    if (!piano.isStarted()) return;
+    setTimeout(() => {
+      piano.playSuccessSound();
+    }, 1000);
+  };
+
+  const onSketchError = () => {
+    if (!piano) return;
+    if (!piano.isStarted()) return;
+    setTimeout(() => {
+      piano.playFailureSound();
+    }, 1000);
+  };
+
+  window.addEventListener("sketch-ready", onSketchReady);
+
+  window.addEventListener("sketch-error", onSketchError);
+
   // Initialize the piano
   let piano;
   let gutterWidth;
@@ -84,17 +105,20 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
     gutterObserver.observe(gutter);
   }, 0);
 
-  function handleKeyDown() {
+  function handleKeyDown(e) {
+    if (e.metaKey) return;
     piano.play();
   }
 
-  function handleModS(view) {
+  async function handleModS(view) {
     onSave(view.state.doc.toString());
+    piano.playSaveSound();
     return true;
   }
 
   function handleModM() {
     piano.moveDown();
+    piano.playMoveSound();
     return true;
   }
 
@@ -145,6 +169,8 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
       piano?.destroy();
       clearTimeout(timeout);
       gutterObserver?.disconnect();
+      window.removeEventListener("sketch-ready", onSketchReady);
+      window.removeEventListener("sketch-error", onSketchError);
     },
   };
 }
