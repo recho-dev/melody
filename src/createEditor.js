@@ -102,10 +102,19 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
     piano.resume();
   };
 
+  // Throttle slider change to prevent too many rapid note plays
+  let lastSliderPlayTime = 0;
+  const SLIDER_THROTTLE_MS = 150; // Minimum time between plays (in milliseconds)
+
   const onSliderChange = () => {
     if (!piano) return;
     if (!piano.isStarted()) return;
-    piano.play();
+
+    const now = Date.now();
+    if (now - lastSliderPlayTime >= SLIDER_THROTTLE_MS) {
+      lastSliderPlayTime = now;
+      piano.play();
+    }
   };
 
   window.addEventListener("preview-show", onPreviewShow);
