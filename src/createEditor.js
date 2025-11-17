@@ -9,6 +9,8 @@ import * as eslint from "eslint-linter-browserify";
 import {linter} from "@codemirror/lint";
 import {browser} from "globals";
 import {createPiano} from "./createPiano.js";
+import {numberHighlight} from "./number.js";
+import {numberSlider} from "./slider.js";
 
 const eslintConfig = {
   languageOptions: {
@@ -43,6 +45,8 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
       vim({status: true}),
       basicSetup,
       javascript(),
+      numberHighlight(),
+      numberSlider(),
       githubDarkInit({
         styles: [
           {tag: [t.variableName], color: "#f0f6fc"},
