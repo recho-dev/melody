@@ -84,6 +84,17 @@ function App() {
     return () => window.removeEventListener("fullscreenchange", exitFullscreen);
   }, []);
 
+  useEffect(() => {
+    const onSliderChange = (event) => {
+      const { code } = event.detail;
+      if (code) {
+        setCode(code);
+      }
+    };
+    window.addEventListener("slider-change", onSliderChange);
+    return () => window.removeEventListener("slider-change", onSliderChange);
+  }, []);
+
   return (
     <div className="min-h-screen" ref={appRef}>
       {!isFullscreen && (
