@@ -94,7 +94,7 @@ export function createPiano({parent}) {
   const timer = d3.interval(update, 1000 / 60);
 
   function colorScale(t) {
-    return d3.interpolateCool(t % 1);
+    return d3.interpolateViridis(t % 1);
   }
 
   function update() {

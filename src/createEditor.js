@@ -12,6 +12,17 @@ import {createPiano} from "./createPiano.js";
 import {numberHighlight} from "./number.js";
 import {numberSlider} from "./slider.js";
 
+function throttle(func, delay) {
+  let lastCall = 0;
+  return function (...args) {
+    const now = Date.now();
+    if (now - lastCall >= delay) {
+      lastCall = now;
+      func.apply(this, args);
+    }
+  };
+}
+
 const eslintConfig = {
   languageOptions: {
     globals: {
@@ -102,20 +113,10 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
     piano.resume();
   };
 
-  // Throttle slider change to prevent too many rapid note plays
-  let lastSliderPlayTime = 0;
-  const SLIDER_THROTTLE_MS = 150; // Minimum time between plays (in milliseconds)
-
-  const onSliderChange = () => {
+  const onSliderChange = throttle(() => {
     if (!piano) return;
-    if (!piano.isStarted()) return;
-
-    const now = Date.now();
-    if (now - lastSliderPlayTime >= SLIDER_THROTTLE_MS) {
-      lastSliderPlayTime = now;
-      piano.play();
-    }
-  };
+    piano.play();
+  }, 200);
 
   window.addEventListener("preview-show", onPreviewShow);
 
