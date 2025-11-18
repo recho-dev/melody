@@ -1,13 +1,13 @@
 // import {useEffect, useRef, useState} from "react";
 
-// function ErrorDisplay({error}) {
-//   return (
-//     <div className="p-4 text-red-700">
-//       <h3 className="font-bold mb-2">Error</h3>
-//       <pre className="whitespace-pre-wrap font-mono text-sm">{error.toString()}</pre>
-//     </div>
-//   );
-// }
+function ErrorDisplay({error}) {
+  return (
+    <div className="p-4 text-red-700">
+      <h3 className="font-bold mb-2">Error</h3>
+      <pre className="whitespace-pre-wrap font-mono text-sm">{error.toString()}</pre>
+    </div>
+  );
+}
 
 // export function Sketch({code}) {
 //   const sketchRef = useRef(null);
@@ -123,9 +123,11 @@ export function Sketch({code}) {
       const parent = document.createElement("div");
       sketchRef.current.appendChild(parent);
       p5InstanceRef.current = evalP5Code(parent, code);
+      window.dispatchEvent(new CustomEvent("sketch-ready"));
     } catch (err) {
       console.error("Error executing sketch code:", err);
       setError(err.message || "An error occurred");
+      window.dispatchEvent(new CustomEvent("sketch-error", {detail: err}));
     }
 
     return () => {
@@ -139,24 +141,7 @@ export function Sketch({code}) {
   return (
     <>
       <div ref={sketchRef}></div>
-      {error && (
-        <div
-          style={{
-            padding: "16px",
-            margin: "16px",
-            backgroundColor: "#fee",
-            border: "1px solid #fcc",
-            borderRadius: "4px",
-            color: "#c00",
-            fontFamily: "monospace",
-            fontSize: "14px",
-            whiteSpace: "pre-wrap",
-            wordBreak: "break-word",
-          }}
-        >
-          <strong>Error:</strong> {error}
-        </div>
-      )}
+      {error && <ErrorDisplay error={error} />}
     </>
   );
 }
