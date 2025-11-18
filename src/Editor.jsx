@@ -1,6 +1,6 @@
 import {useRef, useEffect} from "react";
-import {createEditor} from "./createEditor.js";
-import "./editor.css";
+import {createEditor} from "./editor/createEditor.js";
+import "./editor/editor.css";
 
 export function Editor({code, onSave, isFullscreen, onTogglePreview, ...props}) {
   const containerRef = useRef(null);

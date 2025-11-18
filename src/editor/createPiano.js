@@ -2,7 +2,7 @@ import * as Tone from "tone";
 import * as d3 from "d3";
 import * as cm from "charmingjs";
 import * as Matter from "matter-js";
-import BeethovenMoonlight from "./data/beethoven_moonlight.json";
+import BeethovenMoonlight from "../data/beethoven_moonlight.json";
 
 // Convert MIDI note number to frequency
 function midiToFrequency(midi) {
