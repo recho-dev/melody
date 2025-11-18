@@ -5,11 +5,11 @@ import {Sketch} from "./Sketch.jsx";
 import {Maximize} from "lucide-react";
 import {cn} from "./utils.js";
 
-const initialCode = `function setup() {
-  createCanvas(200, 200);
-  background(0);
-  circle(100, 100, 50);
-}`;
+const initialCode = `p.setup = () => {
+  p.createCanvas(200, 200);
+  p.background(0);
+};
+`;
 
 function App() {
   const [code, setCode] = useState(initialCode);
@@ -66,6 +66,15 @@ function App() {
     };
     window.addEventListener("fullscreenchange", exitFullscreen);
     return () => window.removeEventListener("fullscreenchange", exitFullscreen);
+  }, []);
+
+  useEffect(() => {
+    const onSliderChange = (event) => {
+      const {code} = event.detail;
+      if (code) setCode(code);
+    };
+    window.addEventListener("slider-change", onSliderChange);
+    return () => window.removeEventListener("slider-change", onSliderChange);
   }, []);
 
   return (

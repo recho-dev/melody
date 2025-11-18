@@ -9,6 +9,27 @@ import * as eslint from "eslint-linter-browserify";
 import {linter} from "@codemirror/lint";
 import {browser} from "globals";
 import {createPiano} from "./createPiano.js";
+import {numberHighlight} from "./number.js";
+import {numberSlider} from "./slider.js";
+
+function throttle(func, delay) {
+  let lastCall = 0;
+  return function (...args) {
+    const now = Date.now();
+    if (now - lastCall >= delay) {
+      lastCall = now;
+      func.apply(this, args);
+    }
+  };
+}
+
+function debounce(func, delay) {
+  let timeout;
+  return function (...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), delay);
+  };
+}
 
 const eslintConfig = {
   languageOptions: {
@@ -43,6 +64,8 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
       vim({status: true}),
       basicSetup,
       javascript(),
+      numberHighlight(),
+      numberSlider(),
       githubDarkInit({
         styles: [
           {tag: [t.variableName], color: "#f0f6fc"},
@@ -72,21 +95,17 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
   });
 
   // Listen for sketch ready event
-  const onSketchReady = () => {
+  const onSketchReady = debounce(() => {
     if (!piano) return;
     if (!piano.isStarted()) return;
-    setTimeout(() => {
-      piano.playSuccessSound();
-    }, 1000);
-  };
+    piano.playSuccessSound();
+  }, 1000);
 
-  const onSketchError = () => {
+  const onSketchError = debounce(() => {
     if (!piano) return;
     if (!piano.isStarted()) return;
-    setTimeout(() => {
-      piano.playFailureSound();
-    }, 1000);
-  };
+    piano.playFailureSound();
+  }, 1000);
 
   const onPreviewShow = () => {
     if (!piano) return;
@@ -98,6 +117,11 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
     piano.resume();
   };
 
+  const onSliderChange = throttle(() => {
+    if (!piano) return;
+    piano.play();
+  }, 200);
+
   window.addEventListener("preview-show", onPreviewShow);
 
   window.addEventListener("preview-hide", onPreviewHide);
@@ -105,6 +129,8 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
   window.addEventListener("sketch-ready", onSketchReady);
 
   window.addEventListener("sketch-error", onSketchError);
+
+  window.addEventListener("slider-change", onSliderChange);
 
   // Initialize the piano
   let piano;
@@ -187,6 +213,7 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
       window.removeEventListener("sketch-error", onSketchError);
       window.removeEventListener("preview-show", onPreviewShow);
       window.removeEventListener("preview-hide", onPreviewHide);
+      window.removeEventListener("slider-change", onSliderChange);
     },
   };
 }

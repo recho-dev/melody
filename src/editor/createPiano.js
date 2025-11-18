@@ -2,7 +2,7 @@ import * as Tone from "tone";
 import * as d3 from "d3";
 import * as cm from "charmingjs";
 import * as Matter from "matter-js";
-import BeethovenMoonlight from "./data/beethoven_moonlight.json";
+import BeethovenMoonlight from "../data/beethoven_moonlight.json";
 
 // Convert MIDI note number to frequency
 function midiToFrequency(midi) {
@@ -94,7 +94,7 @@ export function createPiano({parent}) {
   const timer = d3.interval(update, 1000 / 60);
 
   function colorScale(t) {
-    return d3.interpolateCool(t % 1);
+    return d3.interpolateViridis(t % 1);
   }
 
   function update() {
