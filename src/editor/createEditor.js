@@ -23,6 +23,14 @@ function throttle(func, delay) {
   };
 }
 
+function debounce(func, delay) {
+  let timeout;
+  return function (...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), delay);
+  };
+}
+
 const eslintConfig = {
   languageOptions: {
     globals: {
@@ -87,21 +95,17 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
   });
 
   // Listen for sketch ready event
-  const onSketchReady = () => {
+  const onSketchReady = debounce(() => {
     if (!piano) return;
     if (!piano.isStarted()) return;
-    setTimeout(() => {
-      piano.playSuccessSound();
-    }, 1000);
-  };
+    piano.playSuccessSound();
+  }, 1000);
 
-  const onSketchError = () => {
+  const onSketchError = debounce(() => {
     if (!piano) return;
     if (!piano.isStarted()) return;
-    setTimeout(() => {
-      piano.playFailureSound();
-    }, 1000);
-  };
+    piano.playFailureSound();
+  }, 1000);
 
   const onPreviewShow = () => {
     if (!piano) return;
