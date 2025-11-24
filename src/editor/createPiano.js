@@ -77,8 +77,10 @@ export function createPiano({parent}) {
   let height;
   let xScale;
   let rScale;
+  let colorScale;
   const X = notes.map((d) => d.startTime);
   const R = notes.map((d) => d.velocity);
+  const M = notes.map((d) => d.midiNote);
   const PANEL_HEIGHT = 20;
 
   const svg = d3.select(svgParent).append("svg");
@@ -108,10 +110,6 @@ export function createPiano({parent}) {
   const engine = Matter.Engine.create();
   const fallingNotes = [];
   const timer = d3.interval(update, 1000 / 60);
-
-  function colorScale(t) {
-    return d3.interpolateViridis(t % 1);
-  }
 
   function update() {
     Matter.Engine.update(engine);
@@ -181,6 +179,7 @@ export function createPiano({parent}) {
     height = parent.offsetHeight;
     xScale = d3.scaleLinear(d3.extent(X), [0, (width * numScreens) / 5]);
     rScale = d3.scaleRadial(d3.extent(R), [5, 20]);
+    colorScale = d3.scaleSequential(d3.interpolateViridis).domain(d3.extent(M));
 
     // Update the SVG size
     svg.attr("width", width).attr("height", height);
@@ -268,7 +267,7 @@ export function createPiano({parent}) {
       const {left, right, bottom} = currentCoords;
       const x = (left + right) / 2;
       const y = bottom + 10;
-      createNote(x, y, rScale(note.velocity), colorScale(t));
+      createNote(x, y, rScale(note.velocity), colorScale(note.midiNote));
     }
 
     // Translate the notes
