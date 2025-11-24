@@ -34,7 +34,23 @@ export function createPiano({parent}) {
       decayCurve: "exponential",
       releaseCurve: "exponential",
     },
-  }).toDestination();
+  });
+
+  const waveform = new Tone.Waveform(256);
+  synth.toDestination();
+  synth.connect(waveform);
+
+  function calculateAmplitude() {
+    const values = waveform.getValue();
+    if (!values || values.length === 0) return 0;
+    // Calculate RMS (Root Mean Square) amplitude
+    let sum = 0;
+    for (let i = 0; i < values.length; i++) {
+      sum += values[i] * values[i];
+    }
+    const rms = Math.sqrt(sum / values.length);
+    return rms;
+  }
 
   const kit = new Tone.Players({
     kick: "/sounds/kick.mp3",
@@ -100,6 +116,17 @@ export function createPiano({parent}) {
   function update() {
     Matter.Engine.update(engine);
     ctx.clearRect(0, 0, width, height);
+    drawNotes();
+    updateMelody();
+    // drawWalls();
+  }
+
+  function updateMelody() {
+    const melody = (window.melody ??= {});
+    melody.A = calculateAmplitude();
+  }
+
+  function drawNotes() {
     for (const circle of fallingNotes) {
       const {x, y} = circle.position;
       const radius = circle.__radius__;
@@ -109,15 +136,18 @@ export function createPiano({parent}) {
       ctx.fillStyle = fill;
       ctx.fill();
     }
-    // for (const wall of walls) {
-    //   const {x, y} = wall.position;
-    //   const width = wall.__width__;
-    //   const height = wall.__height__;
-    //   ctx.fillStyle = "red";
-    //   ctx.beginPath();
-    //   ctx.rect(x - width / 2, y - height / 2, width, height);
-    //   ctx.fill();
-    // }
+  }
+
+  function drawWalls() {
+    for (const wall of walls) {
+      const {x, y} = wall.position;
+      const width = wall.__width__;
+      const height = wall.__height__;
+      ctx.fillStyle = "red";
+      ctx.beginPath();
+      ctx.rect(x - width / 2, y - height / 2, width, height);
+      ctx.fill();
+    }
   }
 
   function createNote(x, y, radius, fill) {
