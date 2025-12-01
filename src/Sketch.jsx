@@ -5,7 +5,7 @@ p5.disableFriendlyErrors = true;
 
 function ErrorDisplay({error}) {
   return (
-    <div className="p-4 text-red-700">
+    <div className="absolute top-4 left-4 p-4 text-red-700 rounded pointer-events-auto z-20 max-w-md w-[50vw]">
       <h3 className="font-bold mb-2">Error</h3>
       <pre className="whitespace-pre-wrap font-mono text-sm">{error.toString()}</pre>
     </div>
@@ -48,7 +48,11 @@ export function Sketch({code}) {
 
   return (
     <>
-      <div ref={sketchRef}></div>
+      <div
+        ref={sketchRef}
+        className="absolute top-0 right-0 bottom-0 left-0 pointer-events-none"
+        style={{background: "transparent"}}
+      ></div>
       {error && <ErrorDisplay error={error} />}
     </>
   );

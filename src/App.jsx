@@ -7,7 +7,6 @@ import {cn} from "./utils.js";
 
 const initialCode = `p.setup = () => {
   p.createCanvas(200, 200);
-  p.background(0);
 };
 `;
 
@@ -91,19 +90,11 @@ function App() {
           </button>
         </header>
       )}
-      <main className={cn("flex h-[calc(100vh-64px)]", isFullscreen && "h-full", "main")}>
-        <div className="h-full w-1/2 relative pt-2">
+      <main className={cn("relative h-[calc(100vh-64px)]", isFullscreen && "h-full", "main")}>
+        <div className="h-full w-full">
           <Editor code={code} onSave={onSave} style={{height: "100%"}} isFullscreen={isFullscreen} />
         </div>
-        <div
-          className={cn(
-            showPreview
-              ? `w-full absolute ${
-                  isFullscreen ? "top-0" : "top-[64px]"
-                } left-0 bottom-0 right-0 flex gh-bg-secondary z-999`
-              : "h-full w-1/2 gh-border-left p-2"
-          )}
-        >
+        <div className={cn("absolute top-0 right-[50%] z-999", showPreview && "pointer-events-auto")}>
           <Sketch code={code} key={key} />
         </div>
       </main>
