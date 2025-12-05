@@ -235,7 +235,7 @@ export function Workspace({isFullscreen, currentSketchId, onSketchChange}) {
     const newFile = {
       id: newId,
       name: `Canvas ${files.length + 1}`,
-      code: initialCode,
+      code: INITIAL_CODE,
       position: {x: initialX + offset, y: initialY + offset},
     };
     setFiles((prevFiles) => [...prevFiles, newFile]);
@@ -246,10 +246,10 @@ export function Workspace({isFullscreen, currentSketchId, onSketchChange}) {
       // Manually update editor with new file's code
       window.dispatchEvent(
         new CustomEvent("editor-code-update", {
-          detail: {code: initialCode},
+          detail: {code: INITIAL_CODE},
         })
       );
-      currentEditorContent.current = initialCode;
+      currentEditorContent.current = INITIAL_CODE;
     }, 10);
   }
 
@@ -562,7 +562,7 @@ export function Workspace({isFullscreen, currentSketchId, onSketchChange}) {
                 style={{
                   left: 0,
                   top: 0,
-                  zIndex: 1000,
+                  zIndex: activeFileId === file.id ? 1001 : 1000,
                   cursor: isDragging ? "grabbing" : isCmdPressed && isHovering ? "grab" : "pointer",
                 }}
                 onClick={(e) => {
@@ -582,7 +582,17 @@ export function Workspace({isFullscreen, currentSketchId, onSketchChange}) {
                   });
                 }}
               >
-                <Sketch code={file.code} />
+                <Sketch
+                  code={file.code}
+                  style={{
+                    border: isCmdPressed
+                      ? activeFileId === file.id
+                        ? "1px dashed #58a6ff"
+                        : "1px dashed #6e7681"
+                      : "1px dashed transparent",
+                    transition: "border 0.1s ease",
+                  }}
+                />
               </div>
             </Draggable>
           );

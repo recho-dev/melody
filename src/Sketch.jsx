@@ -58,7 +58,7 @@ function evalP5Code(parent, code, onError) {
   return sketch;
 }
 
-export function Sketch({code}) {
+export function Sketch({code, style}) {
   const sketchRef = useRef(null);
   const p5InstanceRef = useRef(null);
   const [error, setError] = useState(null);
@@ -68,6 +68,11 @@ export function Sketch({code}) {
     if (!sketchRef.current) return;
     sketchRef.current.innerHTML = "";
     setError(null);
+
+    // Ensure melody object exists before evaluating code
+    if (typeof window !== "undefined") {
+      window.melody = window.melody || {A: 0};
+    }
 
     try {
       const parent = document.createElement("div");
@@ -87,16 +92,16 @@ export function Sketch({code}) {
         const canvas = parent.querySelector("canvas");
         if (canvas) {
           setDimensions({
-            width: canvas.width,
-            height: canvas.height,
+            width: canvas.width / window.devicePixelRatio + 5,
+            height: canvas.height / window.devicePixelRatio + 5,
           });
           observer.disconnect();
 
           // Watch for canvas resize
           const resizeObserver = new ResizeObserver(() => {
             setDimensions({
-              width: canvas.width,
-              height: canvas.height,
+              width: canvas.width / window.devicePixelRatio + 5,
+              height: canvas.height / window.devicePixelRatio + 5,
             });
           });
           resizeObserver.observe(canvas);
@@ -138,6 +143,7 @@ export function Sketch({code}) {
           background: "transparent",
           width: dimensions.width > 0 ? `${dimensions.width}px` : "auto",
           height: dimensions.height > 0 ? `${dimensions.height}px` : "auto",
+          ...style,
         }}
       ></div>
       {error && <ErrorDisplay error={error} />}
