@@ -5,6 +5,10 @@
       "destination": "/assets/:path*"
     },
     {
+      "source": "/melody/sounds/:path*",
+      "destination": "/sounds/:path*"
+    },
+    {
       "source": "/melody",
       "destination": "/index.html"
     },
