@@ -81,7 +81,6 @@ export function createNewSketch(files, initialCode) {
           initialCode ||
           `p.setup = () => {
   p.createCanvas(200, 200);
-  p.background("#000");
 };
 `,
         position: {x: initialX, y: initialY},
