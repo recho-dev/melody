@@ -121,6 +121,11 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
     piano.play();
   }, 200);
 
+  const onSketchDrag = throttle(() => {
+    if (!piano) return;
+    piano.play();
+  }, 200);
+
   window.addEventListener("sketch-ready", onSketchReady);
 
   window.addEventListener("sketch-error", onSketchError);
@@ -128,6 +133,8 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
   window.addEventListener("slider-change", onSliderChange);
 
   window.addEventListener("color-change", onColorChange);
+
+  window.addEventListener("sketch-drag", onSketchDrag);
 
   // Initialize the piano
   let piano;
@@ -210,6 +217,7 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
       window.removeEventListener("sketch-error", onSketchError);
       window.removeEventListener("slider-change", onSliderChange);
       window.removeEventListener("color-change", onColorChange);
+      window.removeEventListener("sketch-drag", onSketchDrag);
     },
   };
 }

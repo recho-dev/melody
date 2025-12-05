@@ -121,6 +121,9 @@ function App() {
           defaultPosition={{x: 0, y: 0}}
           onStart={() => setIsDragging(true)}
           onStop={() => setIsDragging(false)}
+          onDrag={() => {
+            window.dispatchEvent(new CustomEvent("sketch-drag"));
+          }}
         >
           <div
             ref={draggableNodeRef}
