@@ -3,6 +3,11 @@ import {predicates, objects} from "friendly-words";
 const STORAGE_KEY = "recho-melody-sketches";
 const ACTIVE_SKETCH_KEY = "recho-melody-active-sketch";
 
+export const INITIAL_CODE = `p.setup = () => {
+  p.createCanvas(200, 200);
+};
+`;
+
 function generateSketchName() {
   const predicate = predicates[Math.floor(Math.random() * predicates.length)];
   const object = objects[Math.floor(Math.random() * objects.length)];
@@ -57,7 +62,7 @@ export function deleteSketch(sketchId) {
   }
 }
 
-export function createNewSketch(files, initialCode) {
+export function createNewSketch(files, initialCode = INITIAL_CODE) {
   const sketch = {
     id: generateSketchId(),
     name: generateSketchName(),
@@ -77,12 +82,7 @@ export function createNewSketch(files, initialCode) {
       {
         id: defaultFileId,
         name: "Canvas 1",
-        code:
-          initialCode ||
-          `p.setup = () => {
-  p.createCanvas(200, 200);
-};
-`,
+        code: initialCode,
         position: {x: initialX, y: initialY},
       },
     ];

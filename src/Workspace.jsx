@@ -11,13 +11,8 @@ import {
   setActiveSketchId,
   getSketch,
   generateSketchId,
+  INITIAL_CODE,
 } from "./utils/storage.js";
-
-const initialCode = `p.setup = () => {
-  p.createCanvas(200, 200);
-  p.background("#000");
-};
-`;
 
 function uid() {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -41,17 +36,14 @@ export function Workspace({isFullscreen, currentSketchId, onSketchChange}) {
 
     if (!sketch || !sketch.files || sketch.files.length === 0) {
       // Create a new sketch if none exists
-      sketch = createNewSketch(
-        [
-          {
-            id: generateSketchId(),
-            name: "Canvas 1",
-            code: initialCode,
-            position: {x: initialX, y: initialY},
-          },
-        ],
-        initialCode
-      );
+      sketch = createNewSketch([
+        {
+          id: generateSketchId(),
+          name: "Canvas 1",
+          code: INITIAL_CODE,
+          position: {x: initialX, y: initialY},
+        },
+      ]);
       setActiveSketchId(sketch.id);
     }
 
@@ -66,7 +58,7 @@ export function Workspace({isFullscreen, currentSketchId, onSketchChange}) {
         {
           id: generateSketchId(),
           name: "Canvas 1",
-          code: initialCode,
+          code: INITIAL_CODE,
           position: {x: initialX, y: initialY},
         },
       ];
@@ -91,7 +83,7 @@ export function Workspace({isFullscreen, currentSketchId, onSketchChange}) {
   const currentEditorContent = useRef(""); // Store current editor content without triggering
   const saveTimeoutRef = useRef(null);
   const activeFileIdRef = useRef(activeFileId); // Track current activeFileId in ref
-  
+
   // Keep ref in sync with activeFileId state
   useEffect(() => {
     activeFileIdRef.current = activeFileId;
@@ -203,16 +195,14 @@ export function Workspace({isFullscreen, currentSketchId, onSketchChange}) {
   function onSave(code) {
     // Get the current activeFileId from ref to avoid stale closure
     const currentActiveFileId = activeFileIdRef.current;
-    
+
     // Update file.code which triggers sketch rerun
     setFiles((prevFiles) => {
-      const updatedFiles = prevFiles.map((file) => 
-        file.id === currentActiveFileId ? {...file, code} : file
-      );
-      
+      const updatedFiles = prevFiles.map((file) => (file.id === currentActiveFileId ? {...file, code} : file));
+
       // Get latest sketch from storage to ensure we have current data
       const latestSketch = getSketch(currentSketch.id) || currentSketch;
-      
+
       // Immediately save to localStorage with the correct activeFileId
       const sketchToSave = {
         ...latestSketch,
@@ -221,7 +211,7 @@ export function Workspace({isFullscreen, currentSketchId, onSketchChange}) {
         updatedAt: Date.now(),
       };
       saveSketch(sketchToSave);
-      
+
       return updatedFiles;
     });
     currentEditorContent.current = code; // Also update the ref

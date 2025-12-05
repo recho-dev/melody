@@ -1,13 +1,14 @@
 import {useState, useEffect, useRef} from "react";
 import {Maximize, Trash2} from "lucide-react";
-import {getAllSketches, createNewSketch, generateSketchId, setActiveSketchId, deleteSketch} from "./utils/storage.js";
+import {
+  getAllSketches,
+  createNewSketch,
+  generateSketchId,
+  setActiveSketchId,
+  deleteSketch,
+  INITIAL_CODE,
+} from "./utils/storage.js";
 import {cn} from "./utils.js";
-
-const initialCode = `p.setup = () => {
-  p.createCanvas(200, 200);
-  p.background("#000");
-};
-`;
 
 export function Toolbar({
   isFullscreen,
@@ -47,17 +48,14 @@ export function Toolbar({
   const handleNewSketch = () => {
     const initialX = typeof window !== "undefined" ? window.innerWidth / 2 : 0;
     const initialY = 0;
-    const newSketch = createNewSketch(
-      [
-        {
-          id: generateSketchId(),
-          name: "Canvas 1",
-          code: initialCode,
-          position: {x: initialX, y: initialY},
-        },
-      ],
-      initialCode
-    );
+    const newSketch = createNewSketch([
+      {
+        id: generateSketchId(),
+        name: "Canvas 1",
+        code: INITIAL_CODE,
+        position: {x: initialX, y: initialY},
+      },
+    ]);
     setActiveSketchId(newSketch.id);
     if (onNewSketch) {
       onNewSketch(newSketch.id);
