@@ -92,16 +92,16 @@ export function Sketch({code, style}) {
         const canvas = parent.querySelector("canvas");
         if (canvas) {
           setDimensions({
-            width: canvas.width,
-            height: canvas.height,
+            width: canvas.width / window.devicePixelRatio + 5,
+            height: canvas.height / window.devicePixelRatio + 5,
           });
           observer.disconnect();
 
           // Watch for canvas resize
           const resizeObserver = new ResizeObserver(() => {
             setDimensions({
-              width: canvas.width,
-              height: canvas.height,
+              width: canvas.width / window.devicePixelRatio + 5,
+              height: canvas.height / window.devicePixelRatio + 5,
             });
           });
           resizeObserver.observe(canvas);

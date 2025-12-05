@@ -585,7 +585,11 @@ export function Workspace({isFullscreen, currentSketchId, onSketchChange}) {
                 <Sketch
                   code={file.code}
                   style={{
-                    border: isCmdPressed ? "1px dashed #58a6ff" : "1px dashed transparent",
+                    border: isCmdPressed
+                      ? activeFileId === file.id
+                        ? "1px dashed #58a6ff"
+                        : "1px dashed #6e7681"
+                      : "1px dashed transparent",
                     transition: "border 0.1s ease",
                   }}
                 />
