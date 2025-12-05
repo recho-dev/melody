@@ -167,8 +167,11 @@ function createWebcamManager(bgParent) {
     tempCanvas.width = video.videoWidth;
     tempCanvas.height = video.videoHeight;
 
-    // Draw video frame to temp canvas
-    tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+    // Draw video frame to temp canvas (flipped horizontally)
+    tempCtx.save();
+    tempCtx.scale(-1, 1);
+    tempCtx.drawImage(video, -tempCanvas.width, 0, tempCanvas.width, tempCanvas.height);
+    tempCtx.restore();
 
     // Get image data
     const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
@@ -265,8 +268,11 @@ function createWebcamManager(bgParent) {
           drawY = (canvas.height - drawHeight) / 2;
         }
         
-        // Draw video
-        ctx.drawImage(video, drawX, drawY, drawWidth, drawHeight);
+        // Flip video horizontally (mirror effect)
+        ctx.save();
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, -drawX - drawWidth, drawY, drawWidth, drawHeight);
+        ctx.restore();
         canvas.style.opacity = "0.4";
         if (webcamState.overlay) {
           webcamState.overlay.style.opacity = "0.7";
