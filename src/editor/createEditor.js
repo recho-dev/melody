@@ -184,6 +184,15 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
       const cursorPos = update.state.selection.main.head;
       movePianoToCursor(cursorPos);
     }
+    // Track code changes in real-time
+    if (update.docChanged) {
+      const currentCode = update.state.doc.toString();
+      window.dispatchEvent(
+        new CustomEvent("editor-content-change", {
+          detail: {code: currentCode},
+        })
+      );
+    }
   }
 
   function resize() {
@@ -204,6 +213,15 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
     editor,
     updateFontSize: (fontSize) => {
       editor.dom.style.fontSize = fontSize;
+    },
+    updateCode: (newCode) => {
+      editor.dispatch({
+        changes: {
+          from: 0,
+          to: editor.state.doc.length,
+          insert: newCode,
+        },
+      });
     },
     resize,
     destroy: () => {
