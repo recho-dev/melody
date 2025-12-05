@@ -79,7 +79,9 @@ export function Toolbar({
 
   const handleDeleteSketch = (e, sketchId) => {
     e.stopPropagation();
-    if (!window.confirm("Are you sure you want to delete this sketch?")) return;
+    const sketchToDelete = sketches.find((s) => s.id === sketchId);
+    const sketchName = sketchToDelete?.name || "this sketch";
+    if (!window.confirm(`Are you sure you want to delete "${sketchName}"?`)) return;
 
     deleteSketch(sketchId);
 
