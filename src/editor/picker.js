@@ -220,6 +220,12 @@ const pickerStyles = EditorView.theme({
     padding: "12px",
     backgroundColor: "black",
   },
+  ".IroSlider": {
+    borderRadius: "0px !important",
+  },
+  ".IroSliderGradient": {
+    borderRadius: "0px !important",
+  },
 });
 
 export function colorPicker() {
