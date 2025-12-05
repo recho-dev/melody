@@ -11,6 +11,8 @@ import {browser} from "globals";
 import {createPiano} from "./createPiano.js";
 import {numberHighlight} from "./number.js";
 import {numberSlider} from "./slider.js";
+import {colorHighlight} from "./color.js";
+import {colorPicker} from "./picker.js";
 
 function throttle(func, delay) {
   let lastCall = 0;
@@ -66,6 +68,8 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
       javascript(),
       numberHighlight(),
       numberSlider(),
+      colorHighlight(),
+      colorPicker(),
       githubDarkInit({
         styles: [
           {tag: [t.variableName], color: "#f0f6fc"},
@@ -122,6 +126,11 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
     piano.play();
   }, 200);
 
+  const onColorChange = throttle(() => {
+    if (!piano) return;
+    piano.play();
+  }, 200);
+
   window.addEventListener("preview-show", onPreviewShow);
 
   window.addEventListener("preview-hide", onPreviewHide);
@@ -131,6 +140,8 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
   window.addEventListener("sketch-error", onSketchError);
 
   window.addEventListener("slider-change", onSliderChange);
+
+  window.addEventListener("color-change", onColorChange);
 
   // Initialize the piano
   let piano;
@@ -214,6 +225,7 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
       window.removeEventListener("preview-show", onPreviewShow);
       window.removeEventListener("preview-hide", onPreviewHide);
       window.removeEventListener("slider-change", onSliderChange);
+      window.removeEventListener("color-change", onColorChange);
     },
   };
 }
