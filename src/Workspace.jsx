@@ -1,9 +1,17 @@
-import {useState, useEffect, useRef} from "react";
+import {useState, useEffect, useRef, useCallback} from "react";
 import {Editor} from "./Editor.jsx";
 import {Sketch} from "./Sketch.jsx";
 import {Plus, X} from "lucide-react";
 import {cn} from "./utils.js";
 import Draggable from "react-draggable";
+import {
+  getLastActiveSketch,
+  createNewSketch,
+  saveSketch,
+  setActiveSketchId,
+  getSketch,
+  generateSketchId,
+} from "./utils/storage.js";
 
 const initialCode = `p.setup = () => {
   p.createCanvas(200, 200);
@@ -15,25 +23,176 @@ function uid() {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
 
-export function Workspace({isFullscreen}) {
-  const initialX = window.innerWidth / 2;
+export function Workspace({isFullscreen, currentSketchId, onSketchChange}) {
+  const initialX = typeof window !== "undefined" ? window.innerWidth / 2 : 0;
   const initialY = 0;
+
+  // Initialize sketch helper
+  const initializeSketch = (sketchId) => {
+    let sketch = null;
+
+    if (sketchId) {
+      sketch = getSketch(sketchId);
+    }
+
+    if (!sketch) {
+      sketch = getLastActiveSketch();
+    }
+
+    if (!sketch || !sketch.files || sketch.files.length === 0) {
+      // Create a new sketch if none exists
+      sketch = createNewSketch(
+        [
+          {
+            id: generateSketchId(),
+            name: "Canvas 1",
+            code: initialCode,
+            position: {x: initialX, y: initialY},
+          },
+        ],
+        initialCode
+      );
+      setActiveSketchId(sketch.id);
+    }
+
+    return sketch;
+  };
+
+  const [currentSketch, setCurrentSketch] = useState(() => initializeSketch(currentSketchId));
   const [files, setFiles] = useState(() => {
-    return [
-      {
-        id: uid(),
-        name: "Canvas 1",
-        code: initialCode,
-        position: {x: initialX, y: initialY},
-      },
-    ];
+    const sketchFiles = currentSketch.files || [];
+    if (sketchFiles.length === 0) {
+      return [
+        {
+          id: generateSketchId(),
+          name: "Canvas 1",
+          code: initialCode,
+          position: {x: initialX, y: initialY},
+        },
+      ];
+    }
+    return sketchFiles;
   });
-  const [activeFileId, setActiveFileId] = useState(files[0].id);
+  const [activeFileId, setActiveFileId] = useState(() => {
+    const sketchFiles = currentSketch.files || [];
+    if (sketchFiles.length === 0) return null;
+
+    // Use saved activeFileId if it exists and is valid, otherwise use first file
+    const savedActiveFileId = currentSketch.activeFileId;
+    if (savedActiveFileId && sketchFiles.find((f) => f.id === savedActiveFileId)) {
+      return savedActiveFileId;
+    }
+    return sketchFiles[0].id;
+  });
   const [isCmdPressed, setIsCmdPressed] = useState(false);
   const [hoveringSketchIds, setHoveringSketchIds] = useState(new Set());
   const [draggingSketchIds, setDraggingSketchIds] = useState(new Set());
   const sketchRefs = useRef({});
   const currentEditorContent = useRef(""); // Store current editor content without triggering
+  const saveTimeoutRef = useRef(null);
+
+  // Auto-save function that saves from ref without triggering rerenders
+  const autoSaveFromRef = useCallback(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    saveTimeoutRef.current = setTimeout(() => {
+      // Create updated files array with current editor content from ref
+      const updatedFiles = files.map((file) =>
+        file.id === activeFileId ? {...file, code: currentEditorContent.current} : file
+      );
+
+      const sketchToSave = {
+        ...currentSketch,
+        files: updatedFiles,
+        activeFileId: activeFileId,
+        updatedAt: Date.now(),
+      };
+      saveSketch(sketchToSave);
+      // Don't update currentSketch state to avoid rerenders
+    }, 300); // Debounce saves by 300ms
+  }, [currentSketch, files, activeFileId]);
+
+  // Auto-save function that debounces saves when files state changes
+  const autoSaveFromState = useCallback(() => {
+    const timeoutId = setTimeout(() => {
+      // Merge latest editor content from ref into files array
+      const updatedFiles = files.map((file) =>
+        file.id === activeFileId ? {...file, code: currentEditorContent.current} : file
+      );
+
+      const sketchToSave = {
+        ...currentSketch,
+        files: updatedFiles,
+        activeFileId: activeFileId,
+        updatedAt: Date.now(),
+      };
+      saveSketch(sketchToSave);
+      setCurrentSketch(sketchToSave);
+    }, 300);
+    return () => clearTimeout(timeoutId);
+  }, [currentSketch, files, activeFileId]);
+
+  // Initialize editor content on mount and notify parent
+  useEffect(() => {
+    if (files.length > 0 && activeFileId) {
+      const activeFile = files.find((f) => f.id === activeFileId);
+      if (activeFile) {
+        currentEditorContent.current = activeFile.code || "";
+        // Update editor with initial code
+        setTimeout(() => {
+          window.dispatchEvent(
+            new CustomEvent("editor-code-update", {
+              detail: {code: activeFile.code || ""},
+            })
+          );
+        }, 10);
+      }
+    }
+    // Notify parent of initial sketch
+    if (onSketchChange && currentSketch.id) {
+      onSketchChange(currentSketch.id);
+    }
+  }, []); // Only run on mount
+
+  // Load a different sketch when currentSketchId prop changes
+  useEffect(() => {
+    if (currentSketchId) {
+      if (currentSketchId !== currentSketch.id) {
+        const sketch = getSketch(currentSketchId);
+        if (sketch) {
+          setCurrentSketch(sketch);
+          const sketchFiles = sketch.files || [];
+          setFiles(sketchFiles);
+          if (sketchFiles.length > 0) {
+            // Restore the active file ID from the sketch, or use the first file
+            const savedActiveFileId = sketch.activeFileId;
+            const targetFileId =
+              savedActiveFileId && sketchFiles.find((f) => f.id === savedActiveFileId)
+                ? savedActiveFileId
+                : sketchFiles[0].id;
+
+            setActiveFileId(targetFileId);
+            const targetFile = sketchFiles.find((f) => f.id === targetFileId) || sketchFiles[0];
+            currentEditorContent.current = targetFile.code || "";
+            setTimeout(() => {
+              window.dispatchEvent(
+                new CustomEvent("editor-code-update", {
+                  detail: {code: targetFile.code || ""},
+                })
+              );
+            }, 10);
+          }
+          setActiveSketchId(sketch.id);
+        }
+      }
+    }
+  }, [currentSketchId, currentSketch.id]);
+
+  // Auto-save whenever files state changes (only for non-editor changes like slider/color)
+  useEffect(() => {
+    return autoSaveFromState();
+  }, [autoSaveFromState]);
 
   function onSave(code) {
     // Update file.code which triggers sketch rerun
@@ -188,17 +347,44 @@ export function Workspace({isFullscreen}) {
     return () => window.removeEventListener("color-change", onColorChange);
   }, [activeFileId]);
 
-  // Track editor content changes in real-time (store in ref, don't update file.code to avoid sketch rerun)
+  // Track editor content changes in real-time and auto-save (without triggering sketch rerun)
   useEffect(() => {
     const onEditorContentChange = (event) => {
       const {code} = event.detail;
       if (code !== undefined) {
-        currentEditorContent.current = code; // Store in ref only, don't update file.code
+        currentEditorContent.current = code; // Store in ref only
+        // Auto-save to localStorage without updating files state (no sketch rerun)
+        autoSaveFromRef();
       }
     };
     window.addEventListener("editor-content-change", onEditorContentChange);
     return () => window.removeEventListener("editor-content-change", onEditorContentChange);
-  }, []);
+  }, [autoSaveFromRef]);
+
+  // Track sound progress updates from piano
+  useEffect(() => {
+    const onSoundProgress = (event) => {
+      const {index, percentage} = event.detail;
+      if (index !== undefined && percentage !== undefined) {
+        // Include latest files and activeFileId when saving sound progress
+        const updatedFiles = files.map((file) =>
+          file.id === activeFileId ? {...file, code: currentEditorContent.current} : file
+        );
+
+        const sketchToSave = {
+          ...currentSketch,
+          files: updatedFiles,
+          activeFileId: activeFileId,
+          soundProgress: {index, percentage},
+          updatedAt: Date.now(),
+        };
+        saveSketch(sketchToSave);
+        setCurrentSketch(sketchToSave);
+      }
+    };
+    window.addEventListener("sound-progress", onSoundProgress);
+    return () => window.removeEventListener("sound-progress", onSoundProgress);
+  }, [currentSketch, files, activeFileId]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -262,7 +448,14 @@ export function Workspace({isFullscreen}) {
       </div>
 
       <div className="h-[calc(100%-40px)] w-full relative" style={{zIndex: 1}}>
-        <Editor code={files.find((f) => f.id === activeFileId)?.code || ""} onSave={onSave} style={{height: "100%"}} isFullscreen={isFullscreen} />
+        <Editor
+          key={currentSketch.id}
+          code={files.find((f) => f.id === activeFileId)?.code || ""}
+          onSave={onSave}
+          style={{height: "100%"}}
+          isFullscreen={isFullscreen}
+          initialProgress={currentSketch.soundProgress || {index: 0, percentage: 0}}
+        />
 
         {/* Render all sketches */}
         {files.map((file) => {
@@ -331,4 +524,3 @@ export function Workspace({isFullscreen}) {
     </>
   );
 }
-
