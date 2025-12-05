@@ -69,6 +69,11 @@ export function Sketch({code, style}) {
     sketchRef.current.innerHTML = "";
     setError(null);
 
+    // Ensure melody object exists before evaluating code
+    if (typeof window !== "undefined") {
+      window.melody = window.melody || {A: 0};
+    }
+
     try {
       const parent = document.createElement("div");
       sketchRef.current.appendChild(parent);
