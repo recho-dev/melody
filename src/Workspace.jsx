@@ -339,6 +339,164 @@ export function Workspace({isFullscreen, currentSketchId, onSketchChange}) {
         return;
       }
 
+      // Cmd + Shift + 1 to update active canvas code
+      if (event.key === "1" && event.metaKey && event.shiftKey) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (!activeFileId) return;
+
+        const newCode = `p.setup = () => {
+  p.createCanvas(400, 400);
+};
+
+p.draw = () => {
+  p.clear()
+  p.beginShape()
+  p.fill('#ffffff')
+  let x = p.width/2, y=p.height/2;
+  for(let i = 0; i<360;i++) {
+    let a = p.radians(i%360),
+      c = p.cos(a),
+      s = p.sin(a),
+      r = 82 + p.noise(s + 1, c + 1, p.frameCount/100) * 20;
+    p.vertex(x + r * s, y + r * c);
+  }
+  p.endShape();
+}`;
+
+        // Update the active file's code
+        setFiles((prevFiles) =>
+          prevFiles.map((file) => (file.id === activeFileId ? {...file, code: newCode} : file))
+        );
+        
+        // Update editor content
+        currentEditorContent.current = newCode;
+        window.dispatchEvent(
+          new CustomEvent("editor-code-update", {
+            detail: {code: newCode},
+          })
+        );
+        return;
+      }
+
+      // Cmd + Shift + 2 to update active canvas code
+      if (event.key === "2" && event.metaKey && event.shiftKey) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (!activeFileId) return;
+
+        const newCode = `let a = Math.PI /6;
+
+p.setup = () => {
+  p.createCanvas(400, 546.67);
+};
+
+p.draw = () => {
+  p.clear();
+  p.translate(p.width/2,p.height/2)
+  p.rotate(Math.PI*0.1);
+  p.stroke("#fff");
+  const l = 60;
+  const ll = p.map(melody.A, 0,0.3, l,l*1.2);
+  branch(ll);
+}
+
+function branch(l, r=0) {
+  if(l<10) {
+    p.noStroke();
+    p.fill("#fff");
+    p.circle(0, 0, 8);
+    return;
+  }
+  p.push();
+  p.rotate(r);
+  p.line(0, -l, 0, 0);
+  p.translate(0,-l);
+  l*=0.6;
+  branch(l, a*p.noise(l+p.frameCount/100))
+  branch(l, -a*p.noise(l+p.frameCount/100))
+  p.pop();
+}`;
+
+        // Update the active file's code
+        setFiles((prevFiles) =>
+          prevFiles.map((file) => (file.id === activeFileId ? {...file, code: newCode} : file))
+        );
+        
+        // Update editor content
+        currentEditorContent.current = newCode;
+        window.dispatchEvent(
+          new CustomEvent("editor-code-update", {
+            detail: {code: newCode},
+          })
+        );
+        return;
+      }
+
+      // Cmd + Shift + 3 to update active canvas code
+      if (event.key === "9" && event.metaKey && event.shiftKey) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (!activeFileId) return;
+
+        const newCode = `p.setup = () => {
+  p.createCanvas(608.89, 564.44);
+};
+
+p.draw = () => {
+ p.fill(255);
+ p.textSize(44);
+ p.textAlign("center")
+ p.text("Welcome to my planet!", p.width/2, p.height/2)
+}`;
+
+        // Update the active file's code
+        setFiles((prevFiles) =>
+          prevFiles.map((file) => (file.id === activeFileId ? {...file, code: newCode} : file))
+        );
+        
+        // Update editor content
+        currentEditorContent.current = newCode;
+        window.dispatchEvent(
+          new CustomEvent("editor-code-update", {
+            detail: {code: newCode},
+          })
+        );
+        return;
+      }
+
+      // Cmd + Shift + 4 to update active canvas code
+      if (event.key === "0" && event.metaKey && event.shiftKey) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (!activeFileId) return;
+
+        const newCode = `p.setup = () => {
+  p.createCanvas(608.89, 564.44);
+};
+
+p.draw = () => {
+ p.fill(255);
+ p.textSize(44);
+ p.textAlign("center")
+ p.text("Warm Up is Over!", p.width/2, p.height/2)
+}`;
+
+        // Update the active file's code
+        setFiles((prevFiles) =>
+          prevFiles.map((file) => (file.id === activeFileId ? {...file, code: newCode} : file))
+        );
+        
+        // Update editor content
+        currentEditorContent.current = newCode;
+        window.dispatchEvent(
+          new CustomEvent("editor-code-update", {
+            detail: {code: newCode},
+          })
+        );
+        return;
+      }
+
       // Cmd + Left/Right to switch files
       if (event.metaKey && (event.key === "ArrowLeft" || event.key === "ArrowRight")) {
         event.preventDefault();
