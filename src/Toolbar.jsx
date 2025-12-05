@@ -1,5 +1,5 @@
 import {useState, useEffect, useRef} from "react";
-import {Maximize, Trash2} from "lucide-react";
+import {Maximize, Trash2, Github} from "lucide-react";
 import {
   getAllSketches,
   createNewSketch,
@@ -167,13 +167,24 @@ export function Toolbar({
             )}
           </div>
         </div>
-        <button
-          onClick={onToggleFullscreen}
-          className="mr-4 p-2 hover:bg-gray-800 rounded-md transition-colors cursor-pointer"
-          aria-label="Toggle fullscreen"
-        >
-          <Maximize className="w-5 h-5" />
-        </button>
+        <div className="flex items-center gap-2 mr-4">
+          <button
+            onClick={onToggleFullscreen}
+            className="p-2 hover:bg-gray-800 rounded-md transition-colors cursor-pointer"
+            aria-label="Toggle fullscreen"
+          >
+            <Maximize className="w-5 h-5" />
+          </button>
+          <a
+            href="https://github.com/recho-dev/melody"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2 hover:bg-gray-800 rounded-md transition-colors cursor-pointer"
+            aria-label="GitHub repository"
+          >
+            <Github className="w-5 h-5" />
+          </a>
+        </div>
       </header>
     </>
   );
