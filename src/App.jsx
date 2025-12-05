@@ -205,8 +205,8 @@ function App() {
   return (
     <div className="min-h-screen" ref={appRef}>
       {!isFullscreen && (
-        <header className="h-[64px] gh-header gh-box-shadow gh-text-primary flex items-center justify-between">
-          <h1 className="ml-4 font-bold"> Recho Melody </h1>
+        <header className="h-[48px] gh-header gh-text-primary flex items-center justify-between border-b border-dashed border-gray-600">
+          <h1 className="ml-3 font-bold"> Recho Melody </h1>
           <button
             onClick={toggleFullscreen}
             className="mr-4 p-2 hover:bg-gray-800 rounded-md transition-colors cursor-pointer"
@@ -216,16 +216,16 @@ function App() {
           </button>
         </header>
       )}
-      <main className={cn("relative h-[calc(100vh-64px)]", isFullscreen && "h-full", "main overflow-visible")}>
+      <main className={cn("relative h-[calc(100vh-48px)]", isFullscreen && "h-full", "main overflow-visible")}>
         {/* Tab Bar */}
-        <div className="gh-header gh-border-bottom flex items-center gap-1 px-2 py-1 overflow-x-auto">
+        <div className="flex items-center gap-1 py-1 overflow-x-auto">
           {files.map((file) => (
             <div
               key={file.id}
               className={cn(
                 "flex items-center gap-1 px-3 py-1.5 rounded-t-md cursor-pointer transition-colors",
                 activeFileId === file.id
-                  ? "bg-[#0d1117] text-white"
+                  ? "bg-[#0d1117] text-white border-b-1 border-white"
                   : "bg-transparent text-gray-400 hover:text-white hover:bg-gray-800"
               )}
               onClick={() => switchFile(file.id)}
