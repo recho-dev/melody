@@ -147,11 +147,13 @@ function App() {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event) => {
-      // Cmd + N to create new file
+      // Cmd + B to create new file
       if ((event.key === "b" || event.key === "B") && event.metaKey) {
         event.preventDefault();
         event.stopPropagation();
         addNewFile();
+        // Play sound for adding new file via hotkey
+        window.dispatchEvent(new CustomEvent("file-add"));
         return;
       }
 
@@ -166,10 +168,14 @@ function App() {
           // Switch to previous file
           const prevIndex = currentIndex > 0 ? currentIndex - 1 : files.length - 1;
           switchFile(files[prevIndex].id);
+          // Play sound for switching file via hotkey
+          window.dispatchEvent(new CustomEvent("file-switch"));
         } else if (event.key === "ArrowRight") {
           // Switch to next file
           const nextIndex = currentIndex < files.length - 1 ? currentIndex + 1 : 0;
           switchFile(files[nextIndex].id);
+          // Play sound for switching file via hotkey
+          window.dispatchEvent(new CustomEvent("file-switch"));
         }
       }
     };
