@@ -4,8 +4,12 @@ const STORAGE_KEY = "recho-melody-sketches";
 const ACTIVE_SKETCH_KEY = "recho-melody-active-sketch";
 
 export const INITIAL_CODE = `p.setup = () => {
-  p.createCanvas(200, 200);
+  p.createCanvas(400, 400);
 };
+
+p.draw = () => {
+
+}
 `;
 
 function generateSketchName() {

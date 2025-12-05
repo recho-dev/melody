@@ -170,7 +170,7 @@ function createEditor(parent, {initialCode = "", onSave = () => {}, initialProgr
 
   function handleKeyDown(e) {
     if (e.metaKey) return;
-    piano.play();
+    if (piano) piano.play();
   }
 
   async function handleModS(view) {
@@ -180,12 +180,14 @@ function createEditor(parent, {initialCode = "", onSave = () => {}, initialProgr
   }
 
   function handleModM() {
+    if (!piano) return true;
     piano.moveDown();
     piano.playMoveSound();
     return true;
   }
 
   function movePianoToCursor(cursorPos) {
+    if (!piano) return;
     piano.moveTo(coordsAtPos(cursorPos));
   }
 

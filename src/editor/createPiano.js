@@ -53,11 +53,27 @@ export function createPiano({parent, initialProgress = {index: 0, percentage: 0}
   }
 
   const kit = new Tone.Players({
-    kick: "/sounds/kick.mp3",
-    snare: "/sounds/snare.mp3",
-    hh: "/sounds/hh.mp3",
-    hho: "/sounds/hho.mp3",
+    kick: "/melody/sounds/kick.mp3",
+    snare: "/melody/sounds/snare.mp3",
+    hh: "/melody/sounds/hh.mp3",
+    hho: "/melody/sounds/hho.mp3",
   }).toDestination();
+
+  // Track if buffers are loaded
+  let buffersLoaded = false;
+  // Load all players - wait for all individual players to load
+  Promise.all([
+    kit.player("kick").loaded,
+    kit.player("snare").loaded,
+    kit.player("hh").loaded,
+    kit.player("hho").loaded,
+  ])
+    .then(() => {
+      buffersLoaded = true;
+    })
+    .catch((err) => {
+      console.error("Failed to load sound buffers:", err);
+    });
 
   // The format of the pieceData is [startTime, endTime, midiNote, velocity]
   let notes = [];
@@ -462,7 +478,22 @@ export function createPiano({parent, initialProgress = {index: 0, percentage: 0}
 
   async function playSound(name) {
     if (Tone.getContext().state !== "running") await Tone.start();
-    kit.player(name).start();
+    const player = kit.player(name);
+    if (!player) {
+      console.warn(`Player "${name}" not found`);
+      return;
+    }
+    // Wait for this specific player's buffer to load if it hasn't loaded yet
+    try {
+      await player.loaded;
+      if (player.buffer && player.buffer.loaded) {
+        player.start();
+      } else {
+        console.warn(`Sound buffer for "${name}" is not loaded yet`);
+      }
+    } catch (err) {
+      console.error(`Failed to load sound buffer for "${name}":`, err);
+    }
   }
 
   return {
