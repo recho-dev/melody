@@ -562,7 +562,7 @@ export function Workspace({isFullscreen, currentSketchId, onSketchChange}) {
                 style={{
                   left: 0,
                   top: 0,
-                  zIndex: 1000,
+                  zIndex: activeFileId === file.id ? 1001 : 1000,
                   cursor: isDragging ? "grabbing" : isCmdPressed && isHovering ? "grab" : "pointer",
                 }}
                 onClick={(e) => {
