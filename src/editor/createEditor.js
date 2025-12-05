@@ -47,7 +47,7 @@ const eslintConfig = {
 
 Vim.map("jj", "<Esc>", "insert");
 
-function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
+function createEditor(parent, {initialCode = "", onSave = () => {}, initialProgress = {index: 0, percentage: 0}} = {}) {
   parent.style.position = "relative";
 
   const bgParent = document.createElement("div");
@@ -158,7 +158,7 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
   let gutterObserver;
 
   let timeout = setTimeout(() => {
-    piano = createPiano({parent: bgParent});
+    piano = createPiano({parent: bgParent, initialProgress});
     resize();
     const gutter = editorParent.querySelector(".cm-gutters");
     gutterObserver = new ResizeObserver(() => resize());

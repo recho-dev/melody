@@ -1,11 +1,19 @@
 import "./App.css";
 import {useState, useEffect, useRef} from "react";
 import {Workspace} from "./Workspace.jsx";
-import {Maximize} from "lucide-react";
+import {Toolbar} from "./Toolbar.jsx";
 import {cn} from "./utils.js";
+import {getAllSketches, getActiveSketchId, getLastActiveSketch} from "./utils/storage.js";
 
 function App() {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [currentSketchId, setCurrentSketchId] = useState(() => {
+    const activeId = getActiveSketchId();
+    if (activeId) return activeId;
+    const lastActive = getLastActiveSketch();
+    return lastActive?.id || null;
+  });
+  const [sketches, setSketches] = useState(() => getAllSketches());
   const appRef = useRef(null);
 
   const toggleFullscreen = () => {
@@ -22,22 +30,51 @@ function App() {
     return () => window.removeEventListener("fullscreenchange", exitFullscreen);
   }, []);
 
+  // Refresh sketches list when it might have changed
+  useEffect(() => {
+    const refreshSketches = () => {
+      setSketches(getAllSketches());
+    };
+
+    // Refresh periodically and on focus
+    const interval = setInterval(refreshSketches, 1000);
+    window.addEventListener("focus", refreshSketches);
+    window.addEventListener("storage", refreshSketches); // Listen for localStorage changes from other tabs
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", refreshSketches);
+      window.removeEventListener("storage", refreshSketches);
+    };
+  }, []);
+
+  const handleSketchChange = (sketchId) => {
+    setCurrentSketchId(sketchId);
+    setSketches(getAllSketches()); // Refresh list
+  };
+
+  const handleNewSketch = (sketchId) => {
+    setCurrentSketchId(sketchId);
+    setSketches(getAllSketches()); // Refresh list
+  };
+
+  const handleSketchesChange = () => {
+    setSketches(getAllSketches()); // Refresh list after deletion
+  };
+
   return (
     <div className="min-h-screen" ref={appRef}>
-      {!isFullscreen && (
-        <header className="h-[48px] gh-header gh-text-primary flex items-center justify-between border-b border-dashed border-gray-600">
-          <h1 className="ml-3 font-bold"> Recho Melody </h1>
-          <button
-            onClick={toggleFullscreen}
-            className="mr-4 p-2 hover:bg-gray-800 rounded-md transition-colors cursor-pointer"
-            aria-label="Toggle fullscreen"
-          >
-            <Maximize className="w-5 h-5" />
-          </button>
-        </header>
-      )}
+      <Toolbar
+        isFullscreen={isFullscreen}
+        onToggleFullscreen={toggleFullscreen}
+        sketches={sketches}
+        currentSketchId={currentSketchId}
+        onNewSketch={handleNewSketch}
+        onSelectSketch={handleSketchChange}
+        onSketchesChange={handleSketchesChange}
+      />
       <main className={cn("relative h-[calc(100vh-48px)]", isFullscreen && "h-full", "main overflow-visible")}>
-        <Workspace isFullscreen={isFullscreen} />
+        <Workspace isFullscreen={isFullscreen} currentSketchId={currentSketchId} onSketchChange={handleSketchChange} />
       </main>
     </div>
   );

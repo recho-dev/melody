@@ -9,7 +9,7 @@ function midiToFrequency(midi) {
   return Tone.Frequency(midi, "midi").toFrequency();
 }
 
-export function createPiano({parent}) {
+export function createPiano({parent, initialProgress = {index: 0, percentage: 0}}) {
   const canvasParent = document.createElement("div");
   parent.appendChild(canvasParent);
   canvasParent.className = "canvas-parent";
@@ -201,11 +201,12 @@ export function createPiano({parent}) {
     walls = createWalls();
   }
 
-  let index = 0;
+  let index = initialProgress.index || 0;
   let t = 0;
   let lastTime = Date.now();
   let currentCoords;
   let initialX = 0;
+  let ballsInitialized = false;
 
   let start = false;
   let isAutoPlaying = false;
@@ -240,6 +241,96 @@ export function createPiano({parent}) {
 
   resize();
 
+  // Initialize progress state from stored progress
+  function initializeProgress() {
+    if (index >= 0 && timeNotes.length > 0) {
+      // Update percentage text
+      const percentage = Math.floor((index / timeNotes.length) * 100);
+      pText.text(`${percentage}%`);
+
+      // Position the notes group at the current progress
+      const currentNoteIndex = index % timeNotes.length;
+      const currentNote = timeNotes[currentNoteIndex];
+      if (currentNote && xScale) {
+        const currentStartTime = currentNote[0];
+        const transformX = xScale(currentStartTime);
+        notesGroup.attr("transform", `translate(${-transformX}, 0)`);
+      }
+
+      // Balls will be initialized when cursor is positioned (in moveTo function)
+    }
+  }
+
+  // Function to initialize balls from cursor position
+  function initializeBalls() {
+    if (ballsInitialized || index <= 0 || !currentCoords || !xScale || !rScale || !colorScale || !width || !height) {
+      return;
+    }
+
+    ballsInitialized = true;
+
+    // Clear any existing notes first
+    fallingNotes.forEach((note) => {
+      Matter.Composite.remove(engine.world, note);
+    });
+    fallingNotes.length = 0;
+
+    // Get cursor position
+    const {left, right, bottom} = currentCoords;
+    const startX = (left + right) / 2;
+    const startY = bottom + 10;
+
+    // Create balls for all played notes - all falling from cursor position
+    const playedCount = Math.min(index, timeNotes.length);
+
+    // Limit the number of balls to avoid performance issues
+    const maxBallsToShow = 200;
+    const step = Math.max(1, Math.floor(playedCount / maxBallsToShow));
+
+    for (let i = 0; i < playedCount; i += step) {
+      const [startTime, notes] = timeNotes[i];
+
+      for (const note of notes) {
+        // Create the ball properties
+        const radius = rScale(note.velocity);
+        const fill = colorScale(note.midiNote);
+
+        // All balls start from cursor position
+        const x = startX + (Math.random() - 0.5) * 10; // Small random spread
+
+        // Distribute y positions vertically to show they've been falling
+        // Earlier notes (lower index) have fallen further (higher y value)
+        const progressRatio = i / playedCount;
+        const fallDistance = progressRatio * height * 0.6; // Can fall up to 60% of screen height
+        const y = startY + fallDistance + (Math.random() - 0.5) * 20;
+
+        // Make sure balls stay within screen bounds
+        const clampedX = Math.max(radius, Math.min(width - radius, x));
+        const clampedY = Math.max(radius, Math.min(height - radius - 20, y));
+
+        // Create the ball
+        const ball = Matter.Bodies.circle(clampedX, clampedY, radius);
+        ball.__radius__ = radius;
+        ball.__fill__ = fill;
+
+        // Give it downward velocity to continue falling
+        Matter.Body.setVelocity(ball, {
+          x: (Math.random() - 0.5) * 0.5,
+          y: 0.5 + Math.random() * 0.5,
+        });
+
+        fallingNotes.push(ball);
+        Matter.Composite.add(engine.world, ball);
+      }
+    }
+  }
+
+  // Initialize progress after resize sets up the scales
+  // Use setTimeout to ensure resize completes first
+  setTimeout(() => {
+    initializeProgress();
+  }, 0);
+
   async function play() {
     start = true;
 
@@ -261,6 +352,13 @@ export function createPiano({parent}) {
     // Update the percentage text
     const percentage = Math.floor((index / timeNotes.length) * 100);
     pText.text(`${percentage}%`);
+
+    // Emit progress event for storage
+    window.dispatchEvent(
+      new CustomEvent("sound-progress", {
+        detail: {index, percentage},
+      })
+    );
 
     // Add falling notes
     for (const note of notes) {
@@ -346,12 +444,19 @@ export function createPiano({parent}) {
       const middleY = (top - bottom) / 2;
       const currentX = right + 30;
       const currentY = top - middleY;
+
       cursorGroup
         .transition()
         .duration(200)
         .ease(d3.easeCubicOut)
         .attr("transform", `translate(${currentX}, ${currentY})`);
+
       resetInactivityTimer();
+
+      // Initialize balls from cursor position if not already done
+      if (!ballsInitialized && index > 0 && currentCoords) {
+        initializeBalls();
+      }
     },
     play() {
       resetInactivityTimer();

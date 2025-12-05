@@ -73,3 +73,7 @@
 .cm-activeLineGutter {
   background-color: transparent !important;
 }
+
+.cm-lineNumbers {
+  min-width: 30px !important;
+}
