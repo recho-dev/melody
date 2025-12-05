@@ -2,6 +2,7 @@ import {EditorView, ViewPlugin} from "@codemirror/view";
 import {Annotation} from "@codemirror/state";
 import {createRuler} from "./ruler.js";
 import {html} from "htl";
+import {findColorRanges} from "./color.js";
 
 // Define a annotation to label the slider change transaction.
 export const ANNO_SLIDER_UPDATE = Annotation.define();
@@ -65,12 +66,24 @@ const numberSliderPlugin = ViewPlugin.fromClass(
     }
 
     mouseup(event) {
+      // Return if the mouse is moved too far
       const currentPos = {x: event.clientX, y: event.clientY};
       const distance = Math.hypot(currentPos.x - this.mouseDownPos.x, currentPos.y - this.mouseDownPos.y);
       if (distance > 5) return;
+
       this.closePopup();
+
+      // Get the position of the mouse in the editor
       const pos = this.view.posAtCoords(currentPos);
       if (pos === null) return;
+
+      // Check if the position is inside a color - if so, skip showing the slider
+      const line = this.view.state.doc.lineAt(pos);
+      const text = line.text;
+      const colorRanges = findColorRanges(text, line.from);
+      const isInsideColor = colorRanges.some((range) => pos >= range.start && pos <= range.end);
+      if (isInsideColor) return;
+
       const number = findNumberAt(this.view, pos);
       if (!number) return;
       event.preventDefault();
@@ -97,14 +110,16 @@ const numberSliderPlugin = ViewPlugin.fromClass(
         const diff = formattedValue.length - this.activeNumber.value.length;
         this.activeNumber.to += diff;
         this.activeNumber.value = formattedValue;
-        
+
         // Get the updated code
         const updatedCode = this.view.state.doc.toString();
-        
+
         // Dispatch custom event to trigger Sketch rerender and play note
-        window.dispatchEvent(new CustomEvent("slider-change", {
-          detail: { code: updatedCode }
-        }));
+        window.dispatchEvent(
+          new CustomEvent("slider-change", {
+            detail: {code: updatedCode},
+          })
+        );
       };
 
       this.popup = createSliderPopup(number, onChange);
@@ -145,7 +160,6 @@ const numberSliderPlugin = ViewPlugin.fromClass(
 const sliderStyles = EditorView.theme({
   ".cm-number-slider-popup": {
     position: "absolute",
-    backgroundColor: "#ffffff",
     border: "1px solid rgb(61, 68, 77)",
     padding: "6px",
     zIndex: "1000",

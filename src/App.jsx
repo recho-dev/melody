@@ -7,6 +7,7 @@ import {cn} from "./utils.js";
 
 const initialCode = `p.setup = () => {
   p.createCanvas(200, 200);
+  p.background("#000");
 };
 `;
 
@@ -74,6 +75,15 @@ function App() {
     };
     window.addEventListener("slider-change", onSliderChange);
     return () => window.removeEventListener("slider-change", onSliderChange);
+  }, []);
+
+  useEffect(() => {
+    const onColorChange = (event) => {
+      const {code} = event.detail;
+      if (code) setCode(code);
+    };
+    window.addEventListener("color-change", onColorChange);
+    return () => window.removeEventListener("color-change", onColorChange);
   }, []);
 
   return (

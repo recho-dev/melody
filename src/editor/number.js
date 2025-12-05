@@ -1,4 +1,5 @@
 import {Decoration, ViewPlugin, EditorView} from "@codemirror/view";
+import {findColorRanges} from "./color.js";
 
 const numberDeco = Decoration.mark({class: "cm-number"});
 
@@ -19,12 +20,22 @@ const numberHighlightPlugin = ViewPlugin.fromClass(
       const numberRegex = /-?\d+\.?\d*/g;
       for (const {from, to} of view.visibleRanges) {
         const text = view.state.doc.sliceString(from, to);
+        const colorRanges = findColorRanges(text, from);
         numberRegex.lastIndex = 0;
         let m;
         while ((m = numberRegex.exec(text))) {
           const start = from + m.index;
           const end = start + m[0].length;
-          ranges.push(numberDeco.range(start, end));
+
+          // Check if this number overlaps with any color range
+          const overlapsColor = colorRanges.some(
+            (range) =>
+              (start >= range.start && start < range.end) || // Start is inside a color
+              (end > range.start && end <= range.end) // End is inside a color
+          );
+
+          // Only highlight if it's not part of a color
+          if (!overlapsColor) ranges.push(numberDeco.range(start, end));
         }
       }
       return Decoration.set(ranges, true);
