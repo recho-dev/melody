@@ -177,7 +177,7 @@ export function createPiano({parent}) {
   function resize() {
     width = parent.offsetWidth;
     height = parent.offsetHeight;
-    xScale = d3.scaleLinear(d3.extent(X), [0, (width * numScreens) / 5]);
+    xScale = d3.scaleLinear(d3.extent(X), [0, (width * numScreens) / 10]);
     rScale = d3.scaleRadial(d3.extent(R), [5, 20]);
     colorScale = d3.scaleSequential(d3.interpolateViridis).domain(d3.extent(M));
 
