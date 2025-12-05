@@ -2,7 +2,7 @@ import * as Tone from "tone";
 import * as d3 from "d3";
 import * as cm from "charmingjs";
 import * as Matter from "matter-js";
-import BeethovenMoonlight from "../data/beethoven_moonlight.json";
+import {pieces} from "../data/index.js";
 
 // Convert MIDI note number to frequency
 function midiToFrequency(midi) {
@@ -60,17 +60,12 @@ export function createPiano({parent, initialProgress = {index: 0, percentage: 0}
   }).toDestination();
 
   // The format of the pieceData is [startTime, endTime, midiNote, velocity]
-  const notes = [];
-  const {pieceData, numScreens} = BeethovenMoonlight;
-  for (let i = 0; i < pieceData.length; i += 4) {
-    const startTime = pieceData[i];
-    const endTime = pieceData[i + 1];
-    const midiNote = pieceData[i + 2];
-    const velocity = pieceData[i + 3];
-    const durationMs = endTime - startTime;
-    notes.push({startTime, endTime, midiNote, velocity, duration: Math.max(0.1, durationMs / 1000)});
-  }
-  const timeNotes = d3.groups(notes, (d) => d.startTime);
+  let notes = [];
+  let numScreens = 0;
+  let timeNotes = [];
+  let X = [];
+  let R = [];
+  let M = [];
 
   // Draw the piano
   let width;
@@ -78,9 +73,6 @@ export function createPiano({parent, initialProgress = {index: 0, percentage: 0}
   let xScale;
   let rScale;
   let colorScale;
-  const X = notes.map((d) => d.startTime);
-  const R = notes.map((d) => d.velocity);
-  const M = notes.map((d) => d.midiNote);
   const PANEL_HEIGHT = 20;
 
   const svg = d3.select(svgParent).append("svg");
@@ -89,9 +81,9 @@ export function createPiano({parent, initialProgress = {index: 0, percentage: 0}
 
   const notesGroup = cursorGroup.append("g").attr("transform", `translate(0, 0)`);
 
-  const circles = notesGroup.selectAll("circle").data(notes).join("circle");
+  let circles = notesGroup.selectAll("circle");
 
-  // Draw a percentage number
+  // Draw a percentage number (must be defined before loadPiece)
   const pText = svg
     .append("text")
     .attr("text-anchor", "end")
@@ -104,11 +96,84 @@ export function createPiano({parent, initialProgress = {index: 0, percentage: 0}
     .attr("font-family", "monospace")
     .text("0%");
 
-  // Draw the notes
+  // Initialize variables that loadPiece needs (must be declared before loadPiece)
   let ctx;
   let walls;
   const engine = Matter.Engine.create();
   const fallingNotes = [];
+  let index = initialProgress.index || 0;
+  let t = 0;
+  let lastTime = Date.now();
+  let currentCoords;
+  let initialX = 0;
+  let ballsInitialized = false;
+
+  // Function to load piece data
+  function loadPiece(pieceKey) {
+    const piece = pieces[pieceKey];
+    if (!piece) return;
+
+    // Load new piece data
+    notes = [];
+    const {pieceData} = piece;
+
+    for (let i = 0; i < pieceData.length; i += 4) {
+      const startTime = pieceData[i];
+      const endTime = pieceData[i + 1];
+      const midiNote = pieceData[i + 2];
+      const velocity = pieceData[i + 3];
+      const durationMs = endTime - startTime;
+      notes.push({startTime, endTime, midiNote, velocity, duration: Math.max(0.1, durationMs / 1000)});
+    }
+    timeNotes = d3.groups(notes, (d) => d.startTime);
+    X = notes.map((d) => d.startTime);
+    R = notes.map((d) => d.velocity);
+    M = notes.map((d) => d.midiNote);
+
+    // Calculate numScreens based on the number of timeNotes
+    numScreens = Math.max(1, Math.ceil(timeNotes.length / 5));
+
+    // Reset progress
+    index = 0;
+    ballsInitialized = false;
+
+    // Clear existing notes
+    fallingNotes.forEach((note) => {
+      Matter.Composite.remove(engine.world, note);
+    });
+    fallingNotes.length = 0;
+
+    // Update circles
+    circles = notesGroup.selectAll("circle").data(notes).join("circle");
+
+    // Redraw
+    if (width && height) {
+      resize();
+      setTimeout(() => {
+        initializeProgress();
+      }, 0);
+    } else {
+      // If width/height not set yet, resize will be called later
+      // But we need to call it now to set up the canvas
+      resize();
+    }
+  }
+
+  // Load initial piece (this will call resize internally)
+  let currentPiece = "call_of_silence";
+  loadPiece(currentPiece);
+
+  // Listen for piece selection changes from Workspace
+  const handlePieceChange = (event) => {
+    const pieceKey = event.detail?.piece;
+    if (pieceKey && pieces[pieceKey]) {
+      currentPiece = pieceKey;
+      loadPiece(pieceKey);
+    }
+  };
+  window.addEventListener("piece-selection-change", handlePieceChange);
+
+  // Draw the notes
   const timer = d3.interval(update, 1000 / 60);
 
   function update() {
@@ -177,18 +242,22 @@ export function createPiano({parent, initialProgress = {index: 0, percentage: 0}
   function resize() {
     width = parent.offsetWidth;
     height = parent.offsetHeight;
-    xScale = d3.scaleLinear(d3.extent(X), [0, (width * numScreens) / 10]);
-    rScale = d3.scaleRadial(d3.extent(R), [5, 20]);
-    colorScale = d3.scaleSequential(d3.interpolateViridis).domain(d3.extent(M));
+    if (X.length > 0 && R.length > 0 && M.length > 0) {
+      xScale = d3.scaleLinear(d3.extent(X), [0, (width * numScreens) / 10]);
+      rScale = d3.scaleRadial(d3.extent(R), [5, 20]);
+      colorScale = d3.scaleSequential(d3.interpolateViridis).domain(d3.extent(M));
+    }
 
     // Update the SVG size
     svg.attr("width", width).attr("height", height);
 
-    circles
-      .attr("cx", (d) => xScale(d.startTime))
-      .attr("cy", 0)
-      .attr("r", (d) => rScale(d.velocity))
-      .attr("fill", "#36334280");
+    if (xScale && rScale) {
+      circles
+        .attr("cx", (d) => xScale(d.startTime))
+        .attr("cy", 0)
+        .attr("r", (d) => rScale(d.velocity))
+        .attr("fill", "#36334280");
+    }
 
     pText.attr("x", width - 20).attr("y", height - PANEL_HEIGHT - 20);
 
@@ -200,13 +269,6 @@ export function createPiano({parent, initialProgress = {index: 0, percentage: 0}
     if (walls) walls.forEach((wall) => Matter.Composite.remove(engine.world, wall));
     walls = createWalls();
   }
-
-  let index = initialProgress.index || 0;
-  let t = 0;
-  let lastTime = Date.now();
-  let currentCoords;
-  let initialX = 0;
-  let ballsInitialized = false;
 
   let start = false;
   let isAutoPlaying = false;
@@ -288,9 +350,9 @@ export function createPiano({parent, initialProgress = {index: 0, percentage: 0}
     const step = Math.max(1, Math.floor(playedCount / maxBallsToShow));
 
     for (let i = 0; i < playedCount; i += step) {
-      const [startTime, notes] = timeNotes[i];
+      const [startTime, noteGroup] = timeNotes[i];
 
-      for (const note of notes) {
+      for (const note of noteGroup) {
         // Create the ball properties
         const radius = rScale(note.velocity);
         const fill = colorScale(note.midiNote);
@@ -341,8 +403,8 @@ export function createPiano({parent, initialProgress = {index: 0, percentage: 0}
     // Play the piano
     if (Tone.getContext().state !== "running") await Tone.start();
     const i = index % timeNotes.length;
-    const [, notes] = timeNotes[i];
-    for (const note of notes) {
+    const [, noteGroup] = timeNotes[i];
+    for (const note of noteGroup) {
       const frequency = midiToFrequency(note.midiNote);
       const normalizedVelocity = note.velocity / 127; // Normalize velocity to 0-1
       synth.triggerAttackRelease(frequency, note.duration, Tone.now(), normalizedVelocity);
@@ -361,7 +423,7 @@ export function createPiano({parent, initialProgress = {index: 0, percentage: 0}
     );
 
     // Add falling notes
-    for (const note of notes) {
+    for (const note of noteGroup) {
       const {left, right, bottom} = currentCoords;
       const x = (left + right) / 2;
       const y = bottom + 10;
@@ -431,6 +493,7 @@ export function createPiano({parent, initialProgress = {index: 0, percentage: 0}
       Matter.Engine.clear(engine);
       stopAutoPlay();
       clearTimeout(inactivityTimer);
+      window.removeEventListener("piece-selection-change", handlePieceChange);
     },
     moveDown() {
       initialX += 20;

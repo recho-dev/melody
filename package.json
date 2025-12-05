@@ -20,6 +20,7 @@
     "@jaames/iro": "^5.5.2",
     "@lezer/highlight": "^1.2.2",
     "@replit/codemirror-vim": "^6.3.0",
+    "@tonejs/midi": "^2.0.28",
     "@uiw/codemirror-theme-github": "^4.25.2",
     "charmingjs": "^0.0.19",
     "codemirror": "^6.0.2",

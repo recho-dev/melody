@@ -13,6 +13,7 @@ import {
   generateSketchId,
   INITIAL_CODE,
 } from "./utils/storage.js";
+import {pieces} from "./data/index.js";
 
 function uid() {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -83,6 +84,9 @@ export function Workspace({isFullscreen, currentSketchId, onSketchChange}) {
   const currentEditorContent = useRef(""); // Store current editor content without triggering
   const saveTimeoutRef = useRef(null);
   const activeFileIdRef = useRef(activeFileId); // Track current activeFileId in ref
+
+  // Piece selection state (declared early to be used in keyboard shortcuts)
+  const [selectedPiece, setSelectedPiece] = useState(Object.keys(pieces)[0]);
 
   // Keep ref in sync with activeFileId state
   useEffect(() => {
@@ -314,6 +318,27 @@ export function Workspace({isFullscreen, currentSketchId, onSketchChange}) {
         return;
       }
 
+      // Cmd + O to switch to next piece
+      if ((event.key === "i" || event.key === "I") && event.metaKey) {
+        event.preventDefault();
+        event.stopPropagation();
+        const pieceKeys = Object.keys(pieces);
+        const currentIndex = pieceKeys.findIndex((key) => key === selectedPiece);
+        if (currentIndex === -1) return;
+
+        // Switch to next piece (cycle to first if at end)
+        const nextIndex = (currentIndex + 1) % pieceKeys.length;
+        const nextPiece = pieceKeys[nextIndex];
+        setSelectedPiece(nextPiece);
+        // Notify piano editor of piece change
+        window.dispatchEvent(
+          new CustomEvent("piece-selection-change", {
+            detail: {piece: nextPiece},
+          })
+        );
+        return;
+      }
+
       // Cmd + Left/Right to switch files
       if (event.metaKey && (event.key === "ArrowLeft" || event.key === "ArrowRight")) {
         event.preventDefault();
@@ -340,7 +365,7 @@ export function Workspace({isFullscreen, currentSketchId, onSketchChange}) {
     // Use capture phase to catch the event before browser handles it
     window.addEventListener("keydown", handleKeyDown, true);
     return () => window.removeEventListener("keydown", handleKeyDown, true);
-  }, [files, activeFileId]);
+  }, [files, activeFileId, selectedPiece, pieces]);
 
   useEffect(() => {
     const onSliderChange = (event) => {
@@ -427,6 +452,17 @@ export function Workspace({isFullscreen, currentSketchId, onSketchChange}) {
     };
   }, []);
 
+  const handlePieceChange = (e) => {
+    const piece = e.target.value;
+    setSelectedPiece(piece);
+    // Notify piano editor of piece change
+    window.dispatchEvent(
+      new CustomEvent("piece-selection-change", {
+        detail: {piece},
+      })
+    );
+  };
+
   return (
     <>
       {/* Tab Bar */}
@@ -462,6 +498,20 @@ export function Workspace({isFullscreen, currentSketchId, onSketchChange}) {
         >
           <Plus className="w-4 h-4" />
         </button>
+        {/* Piece Selector - positioned on the right */}
+        <div className="ml-auto mr-2">
+          <select
+            value={selectedPiece}
+            onChange={handlePieceChange}
+            className="px-2 py-1  text-[#f0f6fc] border border-[#363342] rounded-md text-sm font-mono cursor-pointer transition-colors hover:border-[#4a4d5a] focus:outline-none focus:border-[#58a6ff]"
+          >
+            {Object.keys(pieces).map((piece) => (
+              <option key={piece} value={piece}>
+                {piece}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="h-[calc(100%-40px)] w-full relative" style={{zIndex: 1}}>
