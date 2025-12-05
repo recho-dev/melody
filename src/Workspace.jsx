@@ -235,7 +235,7 @@ export function Workspace({isFullscreen, currentSketchId, onSketchChange}) {
     const newFile = {
       id: newId,
       name: `Canvas ${files.length + 1}`,
-      code: initialCode,
+      code: INITIAL_CODE,
       position: {x: initialX + offset, y: initialY + offset},
     };
     setFiles((prevFiles) => [...prevFiles, newFile]);
@@ -246,10 +246,10 @@ export function Workspace({isFullscreen, currentSketchId, onSketchChange}) {
       // Manually update editor with new file's code
       window.dispatchEvent(
         new CustomEvent("editor-code-update", {
-          detail: {code: initialCode},
+          detail: {code: INITIAL_CODE},
         })
       );
-      currentEditorContent.current = initialCode;
+      currentEditorContent.current = INITIAL_CODE;
     }, 10);
   }
 
