@@ -98,13 +98,13 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
   const onSketchReady = debounce(() => {
     if (!piano) return;
     if (!piano.isStarted()) return;
-    piano.playSuccessSound();
+    // piano.playSuccessSound();
   }, 1000);
 
   const onSketchError = debounce(() => {
     if (!piano) return;
     if (!piano.isStarted()) return;
-    piano.playFailureSound();
+    // piano.playFailureSound();
   }, 1000);
 
   const onPreviewShow = () => {
@@ -152,7 +152,7 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
 
   async function handleModS(view) {
     onSave(view.state.doc.toString());
-    piano.playSaveSound();
+    // piano.playSaveSound();
     return true;
   }
 
