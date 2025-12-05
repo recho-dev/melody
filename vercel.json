@@ -1,0 +1,17 @@
+{
+  "rewrites": [
+    {
+      "source": "/melody/assets/:path*",
+      "destination": "/assets/:path*"
+    },
+    {
+      "source": "/melody",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/melody/:path*",
+      "destination": "/index.html"
+    }
+  ]
+}
+
