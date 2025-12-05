@@ -111,16 +111,6 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
     // piano.playFailureSound();
   }, 1000);
 
-  const onPreviewShow = () => {
-    if (!piano) return;
-    piano.stop();
-  };
-
-  const onPreviewHide = () => {
-    if (!piano) return;
-    piano.resume();
-  };
-
   const onSliderChange = throttle(() => {
     if (!piano) return;
     piano.play();
@@ -131,9 +121,10 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
     piano.play();
   }, 200);
 
-  window.addEventListener("preview-show", onPreviewShow);
-
-  window.addEventListener("preview-hide", onPreviewHide);
+  const onSketchDrag = throttle(() => {
+    if (!piano) return;
+    piano.play();
+  }, 200);
 
   window.addEventListener("sketch-ready", onSketchReady);
 
@@ -142,6 +133,8 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
   window.addEventListener("slider-change", onSliderChange);
 
   window.addEventListener("color-change", onColorChange);
+
+  window.addEventListener("sketch-drag", onSketchDrag);
 
   // Initialize the piano
   let piano;
@@ -222,10 +215,9 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
       gutterObserver?.disconnect();
       window.removeEventListener("sketch-ready", onSketchReady);
       window.removeEventListener("sketch-error", onSketchError);
-      window.removeEventListener("preview-show", onPreviewShow);
-      window.removeEventListener("preview-hide", onPreviewHide);
       window.removeEventListener("slider-change", onSliderChange);
       window.removeEventListener("color-change", onColorChange);
+      window.removeEventListener("sketch-drag", onSketchDrag);
     },
   };
 }

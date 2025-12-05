@@ -12,8 +12,49 @@ function ErrorDisplay({error}) {
   );
 }
 
-function evalP5Code(parent, code) {
-  const sketch = new p5(eval(`(p) => { ${code}}`), parent);
+function evalP5Code(parent, code, onError) {
+  // Create user's sketch function
+  const userSketchFn = eval(`(p) => { ${code} }`);
+
+  // Wrapper that adds error handling
+  const wrappedSketchFn = (p) => {
+    // Execute user's code to set up their functions
+    userSketchFn(p);
+
+    // Wrap lifecycle methods with error handling
+    const wrapMethod = (methodName) => {
+      if (p[methodName]) {
+        const originalMethod = p[methodName];
+        p[methodName] = function (...args) {
+          try {
+            return originalMethod.apply(this, args);
+          } catch (err) {
+            if (methodName === "draw") {
+              p.noLoop(); // Stop the draw loop on error
+            }
+            onError(err);
+          }
+        };
+      }
+    };
+
+    // Wrap common p5 lifecycle methods
+    [
+      "setup",
+      "draw",
+      "mousePressed",
+      "mouseReleased",
+      "mouseClicked",
+      "mouseMoved",
+      "mouseDragged",
+      "keyPressed",
+      "keyReleased",
+      "keyTyped",
+      "windowResized",
+    ].forEach(wrapMethod);
+  };
+
+  const sketch = new p5(wrappedSketchFn, parent);
   return sketch;
 }
 
@@ -21,6 +62,7 @@ export function Sketch({code}) {
   const sketchRef = useRef(null);
   const p5InstanceRef = useRef(null);
   const [error, setError] = useState(null);
+  const [dimensions, setDimensions] = useState({width: 0, height: 0});
 
   useEffect(() => {
     if (!sketchRef.current) return;
@@ -30,8 +72,43 @@ export function Sketch({code}) {
     try {
       const parent = document.createElement("div");
       sketchRef.current.appendChild(parent);
-      p5InstanceRef.current = evalP5Code(parent, code);
+
+      const handleError = (err) => {
+        console.error("Error in sketch:", err);
+        setError(err.message || err.toString());
+        window.dispatchEvent(new CustomEvent("sketch-error", {detail: err}));
+      };
+
+      p5InstanceRef.current = evalP5Code(parent, code, handleError);
       window.dispatchEvent(new CustomEvent("sketch-ready"));
+
+      // Observe canvas size changes
+      const observer = new MutationObserver(() => {
+        const canvas = parent.querySelector("canvas");
+        if (canvas) {
+          setDimensions({
+            width: canvas.width,
+            height: canvas.height,
+          });
+          observer.disconnect();
+
+          // Watch for canvas resize
+          const resizeObserver = new ResizeObserver(() => {
+            setDimensions({
+              width: canvas.width,
+              height: canvas.height,
+            });
+          });
+          resizeObserver.observe(canvas);
+
+          // Store for cleanup
+          parent._resizeObserver = resizeObserver;
+        }
+      });
+      observer.observe(parent, {childList: true, subtree: true});
+
+      // Store for cleanup
+      parent._mutationObserver = observer;
     } catch (err) {
       console.error("Error executing sketch code:", err);
       setError(err.message || "An error occurred");
@@ -43,6 +120,12 @@ export function Sketch({code}) {
         p5InstanceRef.current.remove();
         p5InstanceRef.current = null;
       }
+      // Cleanup observers
+      const parent = sketchRef.current?.firstChild;
+      if (parent) {
+        parent._mutationObserver?.disconnect();
+        parent._resizeObserver?.disconnect();
+      }
     };
   }, [code]);
 
@@ -50,8 +133,12 @@ export function Sketch({code}) {
     <>
       <div
         ref={sketchRef}
-        className="absolute top-0 right-0 bottom-0 left-0 pointer-events-none"
-        style={{background: "transparent"}}
+        className="absolute top-0 left-0"
+        style={{
+          background: "transparent",
+          width: dimensions.width > 0 ? `${dimensions.width}px` : "auto",
+          height: dimensions.height > 0 ? `${dimensions.height}px` : "auto",
+        }}
       ></div>
       {error && <ErrorDisplay error={error} />}
     </>
