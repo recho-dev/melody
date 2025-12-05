@@ -20,5 +20,17 @@ export function Editor({code, onSave, isFullscreen, onTogglePreview, ...props}) 
     editorRef.current.updateFontSize(isFullscreen ? "16px" : "14px");
   }, [isFullscreen]);
 
+  // Listen for manual editor code updates (when switching/adding/deleting files)
+  useEffect(() => {
+    const onEditorCodeUpdate = (event) => {
+      const {code: newCode} = event.detail;
+      if (editorRef.current && newCode !== undefined) {
+        editorRef.current.updateCode(newCode);
+      }
+    };
+    window.addEventListener("editor-code-update", onEditorCodeUpdate);
+    return () => window.removeEventListener("editor-code-update", onEditorCodeUpdate);
+  }, []);
+
   return <div ref={containerRef} {...props} />;
 }

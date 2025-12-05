@@ -126,6 +126,18 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
     piano.play();
   }, 200);
 
+  const onFileSwitch = async () => {
+    if (!piano) return;
+    if (!piano.isStarted()) return;
+    await piano.playMoveSound();
+  };
+
+  const onFileAdd = async () => {
+    if (!piano) return;
+    if (!piano.isStarted()) return;
+    await piano.playMoveSound();
+  };
+
   window.addEventListener("sketch-ready", onSketchReady);
 
   window.addEventListener("sketch-error", onSketchError);
@@ -135,6 +147,10 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
   window.addEventListener("color-change", onColorChange);
 
   window.addEventListener("sketch-drag", onSketchDrag);
+
+  window.addEventListener("file-switch", onFileSwitch);
+
+  window.addEventListener("file-add", onFileAdd);
 
   // Initialize the piano
   let piano;
@@ -184,6 +200,15 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
       const cursorPos = update.state.selection.main.head;
       movePianoToCursor(cursorPos);
     }
+    // Track code changes in real-time
+    if (update.docChanged) {
+      const currentCode = update.state.doc.toString();
+      window.dispatchEvent(
+        new CustomEvent("editor-content-change", {
+          detail: {code: currentCode},
+        })
+      );
+    }
   }
 
   function resize() {
@@ -205,6 +230,15 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
     updateFontSize: (fontSize) => {
       editor.dom.style.fontSize = fontSize;
     },
+    updateCode: (newCode) => {
+      editor.dispatch({
+        changes: {
+          from: 0,
+          to: editor.state.doc.length,
+          insert: newCode,
+        },
+      });
+    },
     resize,
     destroy: () => {
       editor.destroy();
@@ -218,6 +252,8 @@ function createEditor(parent, {initialCode = "", onSave = () => {}} = {}) {
       window.removeEventListener("slider-change", onSliderChange);
       window.removeEventListener("color-change", onColorChange);
       window.removeEventListener("sketch-drag", onSketchDrag);
+      window.removeEventListener("file-switch", onFileSwitch);
+      window.removeEventListener("file-add", onFileAdd);
     },
   };
 }
