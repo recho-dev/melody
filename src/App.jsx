@@ -144,6 +144,41 @@ function App() {
     return () => window.removeEventListener("fullscreenchange", exitFullscreen);
   }, []);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      // Cmd + N to create new file
+      if ((event.key === "b" || event.key === "B") && event.metaKey) {
+        event.preventDefault();
+        event.stopPropagation();
+        addNewFile();
+        return;
+      }
+
+      // Cmd + Left/Right to switch files
+      if (event.metaKey && (event.key === "ArrowLeft" || event.key === "ArrowRight")) {
+        event.preventDefault();
+        event.stopPropagation();
+        const currentIndex = files.findIndex((f) => f.id === activeFileId);
+        if (currentIndex === -1) return;
+
+        if (event.key === "ArrowLeft") {
+          // Switch to previous file
+          const prevIndex = currentIndex > 0 ? currentIndex - 1 : files.length - 1;
+          switchFile(files[prevIndex].id);
+        } else if (event.key === "ArrowRight") {
+          // Switch to next file
+          const nextIndex = currentIndex < files.length - 1 ? currentIndex + 1 : 0;
+          switchFile(files[nextIndex].id);
+        }
+      }
+    };
+
+    // Use capture phase to catch the event before browser handles it
+    window.addEventListener("keydown", handleKeyDown, true);
+    return () => window.removeEventListener("keydown", handleKeyDown, true);
+  }, [files, activeFileId]);
+
   useEffect(() => {
     const onSliderChange = (event) => {
       const {code} = event.detail;
