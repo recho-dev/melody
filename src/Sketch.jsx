@@ -12,8 +12,49 @@ function ErrorDisplay({error}) {
   );
 }
 
-function evalP5Code(parent, code) {
-  const sketch = new p5(eval(`(p) => { ${code}}`), parent);
+function evalP5Code(parent, code, onError) {
+  // Create user's sketch function
+  const userSketchFn = eval(`(p) => { ${code} }`);
+
+  // Wrapper that adds error handling
+  const wrappedSketchFn = (p) => {
+    // Execute user's code to set up their functions
+    userSketchFn(p);
+
+    // Wrap lifecycle methods with error handling
+    const wrapMethod = (methodName) => {
+      if (p[methodName]) {
+        const originalMethod = p[methodName];
+        p[methodName] = function (...args) {
+          try {
+            return originalMethod.apply(this, args);
+          } catch (err) {
+            if (methodName === "draw") {
+              p.noLoop(); // Stop the draw loop on error
+            }
+            onError(err);
+          }
+        };
+      }
+    };
+
+    // Wrap common p5 lifecycle methods
+    [
+      "setup",
+      "draw",
+      "mousePressed",
+      "mouseReleased",
+      "mouseClicked",
+      "mouseMoved",
+      "mouseDragged",
+      "keyPressed",
+      "keyReleased",
+      "keyTyped",
+      "windowResized",
+    ].forEach(wrapMethod);
+  };
+
+  const sketch = new p5(wrappedSketchFn, parent);
   return sketch;
 }
 
@@ -31,7 +72,14 @@ export function Sketch({code}) {
     try {
       const parent = document.createElement("div");
       sketchRef.current.appendChild(parent);
-      p5InstanceRef.current = evalP5Code(parent, code);
+
+      const handleError = (err) => {
+        console.error("Error in sketch:", err);
+        setError(err.message || err.toString());
+        window.dispatchEvent(new CustomEvent("sketch-error", {detail: err}));
+      };
+
+      p5InstanceRef.current = evalP5Code(parent, code, handleError);
       window.dispatchEvent(new CustomEvent("sketch-ready"));
 
       // Observe canvas size changes
