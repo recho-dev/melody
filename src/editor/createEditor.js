@@ -13,6 +13,7 @@ import {numberHighlight} from "./number.js";
 import {numberSlider} from "./slider.js";
 import {colorHighlight} from "./color.js";
 import {colorPicker} from "./picker.js";
+import {webcamExtension, initWebcam, destroyWebcam} from "./webcam.js";
 
 function throttle(func, delay) {
   let lastCall = 0;
@@ -93,6 +94,7 @@ function createEditor(parent, {initialCode = "", onSave = () => {}, initialProgr
         },
         indentWithTab,
       ]),
+      webcamExtension(),
       linter(esLint(new eslint.Linter(), eslintConfig)),
     ],
     doc: initialCode,
@@ -158,6 +160,7 @@ function createEditor(parent, {initialCode = "", onSave = () => {}, initialProgr
   let gutterObserver;
 
   let timeout = setTimeout(() => {
+    initWebcam(bgParent);
     piano = createPiano({parent: bgParent, initialProgress});
     resize();
     const gutter = editorParent.querySelector(".cm-gutters");
@@ -245,6 +248,7 @@ function createEditor(parent, {initialCode = "", onSave = () => {}, initialProgr
       bgParent.remove();
       editorParent.remove();
       piano?.destroy();
+      destroyWebcam();
       clearTimeout(timeout);
       gutterObserver?.disconnect();
       window.removeEventListener("sketch-ready", onSketchReady);
