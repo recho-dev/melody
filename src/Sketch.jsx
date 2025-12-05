@@ -58,7 +58,7 @@ function evalP5Code(parent, code, onError) {
   return sketch;
 }
 
-export function Sketch({code}) {
+export function Sketch({code, style}) {
   const sketchRef = useRef(null);
   const p5InstanceRef = useRef(null);
   const [error, setError] = useState(null);
@@ -138,6 +138,7 @@ export function Sketch({code}) {
           background: "transparent",
           width: dimensions.width > 0 ? `${dimensions.width}px` : "auto",
           height: dimensions.height > 0 ? `${dimensions.height}px` : "auto",
+          ...style,
         }}
       ></div>
       {error && <ErrorDisplay error={error} />}
