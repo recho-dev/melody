@@ -4,6 +4,7 @@ import {Editor} from "./Editor.jsx";
 import {Sketch} from "./Sketch.jsx";
 import {Maximize} from "lucide-react";
 import {cn} from "./utils.js";
+import Draggable from "react-draggable";
 
 const initialCode = `p.setup = () => {
   p.createCanvas(200, 200);
@@ -15,7 +16,11 @@ function App() {
   const [code, setCode] = useState(initialCode);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [key, setKey] = useState(0);
+  const [isCmdPressed, setIsCmdPressed] = useState(false);
+  const [isHoveringSketch, setIsHoveringSketch] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const appRef = useRef(null);
+  const draggableNodeRef = useRef(null);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) appRef.current.requestFullscreen();
@@ -68,6 +73,30 @@ function App() {
     return () => window.removeEventListener("color-change", onColorChange);
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.metaKey || event.key === "Meta") {
+        setIsCmdPressed(true);
+      }
+    };
+    const handleKeyUp = (event) => {
+      if (!event.metaKey && event.key === "Meta") {
+        setIsCmdPressed(false);
+      }
+    };
+    const handleBlur = () => {
+      setIsCmdPressed(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("blur", handleBlur);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+      window.removeEventListener("blur", handleBlur);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen" ref={appRef}>
       {!isFullscreen && (
@@ -86,9 +115,29 @@ function App() {
         <div className="h-full w-full">
           <Editor code={code} onSave={onSave} style={{height: "100%"}} isFullscreen={isFullscreen} />
         </div>
-        <div className="absolute top-0 right-[50%] z-999">
-          <Sketch code={code} key={key} />
-        </div>
+        <Draggable
+          nodeRef={draggableNodeRef}
+          disabled={!isCmdPressed}
+          defaultPosition={{x: 0, y: 0}}
+          onStart={() => setIsDragging(true)}
+          onStop={() => setIsDragging(false)}
+        >
+          <div
+            ref={draggableNodeRef}
+            className="absolute top-0 right-[50%] z-999"
+            style={{
+              cursor: isDragging
+                ? "grabbing"
+                : isCmdPressed && isHoveringSketch
+                ? "grab"
+                : "default",
+            }}
+            onMouseEnter={() => setIsHoveringSketch(true)}
+            onMouseLeave={() => setIsHoveringSketch(false)}
+          >
+            <Sketch code={code} key={key} />
+          </div>
+        </Draggable>
       </main>
     </div>
   );
