@@ -12,7 +12,7 @@ This also means that pianists and coders have something in common: when they pre
 
 1. Start coding in the editor on the left
 2. Watch the piano notes fall as you type
-3. Hear the music play in sync with your code
+3. `Cmd/Ctrl + S` to save your code and run the sketch
 4. Create visual sketches that respond to the melody
 5. Select different pieces from the dropdown to change the music
 
@@ -20,8 +20,8 @@ This also means that pianists and coders have something in common: when they pre
 
 - Piano notes automatically play and fall down as you type
 - You can create multiple canvases in one sketch
-- Drag and drop canvases to reorder them
-- Hold `Cmd/Ctrl` to show the outline of the canvas
+- `Cmd/Ctrl + Drag` to reorder canvases
+- `Cmd/Ctrl` to show the outline of the canvas
 - Use `melody.A` to access the current note's amplitude
 - Drag sliders on numbers to adjust values interactively
 - Click color values to open the color picker
