@@ -1,5 +1,7 @@
 import {useState, useEffect, useRef} from "react";
 import {Maximize, Trash2, Github, HelpCircle} from "lucide-react";
+import {Tooltip} from "react-tooltip";
+import "react-tooltip/dist/react-tooltip.css";
 import {
   getAllSketches,
   createNewSketch,
@@ -19,6 +21,8 @@ export function Toolbar({
   onSelectSketch,
   onSketchesChange,
   onToggleInstructions,
+  autoPlay,
+  onToggleAutoPlay,
 }) {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const popupRef = useRef(null);
@@ -169,6 +173,30 @@ export function Toolbar({
           </div>
         </div>
         <div className="flex items-center gap-2 mr-4">
+          {/* Auto-play toggle */}
+          <div className="flex items-center gap-2 px-2">
+            <span className="text-xs text-gray-400">Auto</span>
+            <button
+              onClick={onToggleAutoPlay}
+              data-tooltip-id="auto-play-tooltip"
+              data-tooltip-content="Auto-play piano notes while typing or interacting"
+              className={cn(
+                "relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#58a6ff] focus:ring-offset-2 focus:ring-offset-[#0d1117]",
+                autoPlay ? "bg-[#58a6ff]" : "bg-gray-600"
+              )}
+              aria-label="Toggle auto-play"
+              role="switch"
+              aria-checked={autoPlay}
+            >
+              <span
+                className={cn(
+                  "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+                  autoPlay ? "translate-x-5" : "translate-x-0.5"
+                )}
+              />
+            </button>
+            <Tooltip id="auto-play-tooltip" place="bottom" />
+          </div>
           <button
             onClick={onToggleInstructions}
             className="p-2 hover:bg-gray-800 rounded-md transition-colors cursor-pointer"
