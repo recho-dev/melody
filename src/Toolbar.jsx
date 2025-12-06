@@ -1,5 +1,5 @@
 import {useState, useEffect, useRef} from "react";
-import {Maximize, Trash2, Github} from "lucide-react";
+import {Maximize, Trash2, Github, HelpCircle} from "lucide-react";
 import {
   getAllSketches,
   createNewSketch,
@@ -18,6 +18,7 @@ export function Toolbar({
   onNewSketch,
   onSelectSketch,
   onSketchesChange,
+  onToggleInstructions,
 }) {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const popupRef = useRef(null);
@@ -168,6 +169,13 @@ export function Toolbar({
           </div>
         </div>
         <div className="flex items-center gap-2 mr-4">
+          <button
+            onClick={onToggleInstructions}
+            className="p-2 hover:bg-gray-800 rounded-md transition-colors cursor-pointer"
+            aria-label="Open instructions"
+          >
+            <HelpCircle className="w-5 h-5" />
+          </button>
           <button
             onClick={onToggleFullscreen}
             className="p-2 hover:bg-gray-800 rounded-md transition-colors cursor-pointer"

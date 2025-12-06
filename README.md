@@ -2,41 +2,51 @@
 
 > A chronological editor for coding with piano.
 
-Pianists and coders have something in common: when they press the keys, things come to life. One creates sound, the other creates visuals.
+Code and music have something in common: graphical music scores guide musical activity in time, and code executes in time in unique ways.
 
-In the same sense, code and music have something in common: graphical music scores guide musical activity in time, and code executes in time in unique ways.
-
-What if both happened together? Let's see—and listen.
+This also means that pianists and coders have something in common: when they press the keys, things come to life. One creates sound, the other creates visuals. **What if both happened together? Let's see—and listen.**
 
 ![preview](./img/preview.png)
 
-## Keyboard Shortcuts
+## Getting Started
+
+1. Start coding in the editor on the left
+2. Watch the piano notes fall as you type
+3. Hear the music play in sync with your code
+4. Create visual sketches that respond to the melody
+5. Select different pieces from the dropdown to change the music
+
+## Features
+
+- Piano notes automatically play and fall down as you type
+- You can create multiple canvases in one sketch
+- Drag and drop canvases to reorder them
+- Hold `Cmd/Ctrl` to show the outline of the canvas
+- Use `melody.A` to access the current note's amplitude
+- Drag sliders on numbers to adjust values interactively
+- Click color values to open the color picker
+- `Cmd/Ctrl + O/o` to display your face as the background
+
+## Shortcuts
 
 ### File Management
 
 - `Cmd/Ctrl + B` - Create new file
-- `Cmd/Ctrl + Left Arrow` - Switch to previous file
-- `Cmd/Ctrl + Right Arrow` - Switch to next file
-
-### Piece Navigation
-
-- `Cmd/Ctrl + I` - Switch to next piece (cycles through available pieces)
+- `Cmd/Ctrl + ←` - Previous file
+- `Cmd/Ctrl + →` - Next file
 
 ### Editor
 
-- `Cmd/Ctrl + S` - Save current file
-- `Cmd/Ctrl + M` - Move piano down
-- `Tab` - Indent code
-- `jj` - Escape (Vim mode, in insert mode)
+- `Cmd/Ctrl + S` - Save
+- `Cmd/Ctrl + M` - Move note circles down
+- `jj` - Escape (Vim mode)
+
+### Pieces & Templates
+
+- `Cmd/Ctrl + I` - Switch piece
+- `Cmd/Ctrl + Shift + 1-2, 9-0` - Code templates
 
 ### Visual Modes
 
 - `Cmd/Ctrl + O` - Toggle ASCII mode
 - `Cmd/Ctrl + Shift + O` - Toggle normal mode
-
-### Code Templates
-
-- `Cmd/Ctrl + Shift + 1` - Insert template 1 (noise circle)
-- `Cmd/Ctrl + Shift + 2` - Insert template 2 (recursive tree)
-- `Cmd/Ctrl + Shift + 9` - Insert template 3 (welcome message)
-- `Cmd/Ctrl + Shift + 0` - Insert template 4 (warm up message)
