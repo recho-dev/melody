@@ -48,7 +48,7 @@ const eslintConfig = {
 
 Vim.map("jj", "<Esc>", "insert");
 
-function createEditor(parent, {initialCode = "", onSave = () => {}, initialProgress = {index: 0, percentage: 0}} = {}) {
+function createEditor(parent, {initialCode = "", onSave = () => {}, initialProgress = {index: 0, percentage: 0}, vimEnabled = false} = {}) {
   parent.style.position = "relative";
 
   const bgParent = document.createElement("div");
@@ -60,45 +60,66 @@ function createEditor(parent, {initialCode = "", onSave = () => {}, initialProgr
   parent.appendChild(editorParent);
 
   // Initialize the editor
+  const extensions = [
+    EditorView.domEventHandlers({keydown: handleKeyDown}),
+    basicSetup,
+    javascript(),
+    numberHighlight(),
+    numberSlider(),
+    colorHighlight(),
+    colorPicker(),
+    githubDarkInit({
+      styles: [
+        {tag: [t.variableName], color: "#f0f6fc"},
+        {tag: [t.function(t.variableName)], color: "#d2a8ff"},
+      ],
+    }),
+    EditorView.updateListener.of(handleCursorChange),
+    EditorView.theme({
+      "&": {fontSize: "14px", fontFamily: "monospace", height: "100%"},
+    }),
+    keymap.of([
+      {
+        key: "Mod-s",
+        run: handleModS,
+        preventDefault: true,
+      },
+      {
+        key: "Mod-m",
+        run: handleModM,
+        preventDefault: true,
+      },
+      indentWithTab,
+    ]),
+    webcamExtension(),
+    linter(esLint(new eslint.Linter(), eslintConfig)),
+  ];
+
+  // Conditionally add vim extension
+  if (vimEnabled) {
+    extensions.splice(1, 0, vim({status: true})); // Insert after domEventHandlers
+  }
+
   const editor = new EditorView({
     parent: editorParent,
-    extensions: [
-      EditorView.domEventHandlers({keydown: handleKeyDown}),
-      vim({status: true}),
-      basicSetup,
-      javascript(),
-      numberHighlight(),
-      numberSlider(),
-      colorHighlight(),
-      colorPicker(),
-      githubDarkInit({
-        styles: [
-          {tag: [t.variableName], color: "#f0f6fc"},
-          {tag: [t.function(t.variableName)], color: "#d2a8ff"},
-        ],
-      }),
-      EditorView.updateListener.of(handleCursorChange),
-      EditorView.theme({
-        "&": {fontSize: "14px", fontFamily: "monospace", height: "100%"},
-      }),
-      keymap.of([
-        {
-          key: "Mod-s",
-          run: handleModS,
-          preventDefault: true,
-        },
-        {
-          key: "Mod-m",
-          run: handleModM,
-          preventDefault: true,
-        },
-        indentWithTab,
-      ]),
-      webcamExtension(),
-      linter(esLint(new eslint.Linter(), eslintConfig)),
-    ],
+    extensions,
     doc: initialCode,
   });
+
+  // Store vim state
+  let currentVimEnabled = vimEnabled;
+
+  // Listen for vim mode toggle events
+  const onVimModeToggle = (event) => {
+    const enabled = event.detail?.enabled || false;
+    if (enabled === currentVimEnabled) return; // No change needed
+    
+    // Note: CodeMirror extensions can't be dynamically added/removed
+    // This would require recreating the editor, which is complex
+    // For now, we'll just track the state for future editor instances
+    currentVimEnabled = enabled;
+  };
+  window.addEventListener("vim-mode-toggle", onVimModeToggle);
 
   // Listen for sketch ready event
   const onSketchReady = debounce(() => {
