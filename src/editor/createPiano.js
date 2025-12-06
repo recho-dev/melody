@@ -176,7 +176,7 @@ export function createPiano({parent, initialProgress = {index: 0, percentage: 0}
   }
 
   // Load initial piece (this will call resize internally)
-  let currentPiece = "call_of_silence";
+  let currentPiece = "beethoven_moonlight";
   loadPiece(currentPiece);
 
   // Listen for piece selection changes from Workspace

@@ -86,7 +86,7 @@ export function Workspace({isFullscreen, currentSketchId, onSketchChange}) {
   const activeFileIdRef = useRef(activeFileId); // Track current activeFileId in ref
 
   // Piece selection state (declared early to be used in keyboard shortcuts)
-  const [selectedPiece, setSelectedPiece] = useState(Object.keys(pieces)[0]);
+  const [selectedPiece, setSelectedPiece] = useState("beethoven_moonlight");
 
   // Keep ref in sync with activeFileId state
   useEffect(() => {
