@@ -35,7 +35,10 @@ export function Instructions({isFullscreen, isOpen, onClose}) {
                 <ol className="list-decimal list-inside space-y-2 ml-2">
                   <li>Start coding in the editor on the left</li>
                   <li>Watch the piano notes fall as you type</li>
-                  <li>Hear the music play in sync with your code</li>
+                  <li>
+                    <code className="bg-[#21262d] px-1.5 py-0.5 rounded text-[#58a6ff]">Cmd/Ctrl + S</code> to save your
+                    code and run the sketch
+                  </li>
                   <li>Create visual sketches that respond to the melody</li>
                   <li>Select different pieces from the dropdown to change the music</li>
                 </ol>
@@ -51,7 +54,10 @@ export function Instructions({isFullscreen, isOpen, onClose}) {
                 <ul className="list-disc list-inside space-y-2 ml-2">
                   <li>Pino notes automatically play and fall down as you type</li>
                   <li>You can create multiple canvases in one sketch</li>
-                  <li>Drag and drop canvases to reorder them</li>
+                  <li>
+                    <code className="bg-[#21262d] px-1.5 py-0.5 rounded text-[#58a6ff]">Cmd/Ctrl + Drag</code> to
+                    reorder canvases
+                  </li>
                   <li>
                     <code className="bg-[#21262d] px-1.5 py-0.5 rounded text-[#58a6ff]">Cmd/Ctrl</code> to show the
                     outline of the canvas

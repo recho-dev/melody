@@ -290,12 +290,20 @@ export function createPiano({parent, initialProgress = {index: 0, percentage: 0}
   let isAutoPlaying = false;
   let inactivityTimer = null;
   let autoPlayInterval = null;
+  let autoPlayEnabled = false;
   const INACTIVITY_TIMEOUT = 5000;
+
+  // Listen for auto-play toggle events
+  const onAutoPlayToggle = (event) => {
+    autoPlayEnabled = event.detail?.enabled || false;
+  };
+  window.addEventListener("auto-play-toggle", onAutoPlayToggle);
 
   function startAutoPlay() {
     if (!isAutoPlaying && start) {
       isAutoPlaying = true;
       autoPlayInterval = setInterval(() => {
+        if (!autoPlayEnabled) return;
         play();
       }, 2000);
     }
@@ -310,6 +318,7 @@ export function createPiano({parent, initialProgress = {index: 0, percentage: 0}
   }
 
   function resetInactivityTimer() {
+    if (!autoPlayEnabled) return;
     clearTimeout(inactivityTimer);
     stopAutoPlay();
     inactivityTimer = setTimeout(() => {

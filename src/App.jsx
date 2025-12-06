@@ -9,6 +9,7 @@ import {getAllSketches, getActiveSketchId, getLastActiveSketch} from "./utils/st
 function App() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
+  const [autoPlay, setAutoPlay] = useState(false);
   const [currentSketchId, setCurrentSketchId] = useState(() => {
     const activeId = getActiveSketchId();
     if (activeId) return activeId;
@@ -75,6 +76,15 @@ function App() {
         onSelectSketch={handleSketchChange}
         onSketchesChange={handleSketchesChange}
         onToggleInstructions={() => setIsInstructionsOpen(!isInstructionsOpen)}
+        autoPlay={autoPlay}
+        onToggleAutoPlay={() => {
+          setAutoPlay(!autoPlay);
+          window.dispatchEvent(
+            new CustomEvent("auto-play-toggle", {
+              detail: {enabled: !autoPlay},
+            })
+          );
+        }}
       />
       <main className={cn("relative h-[calc(100vh-48px)]", isFullscreen && "h-full", "main overflow-visible")}>
         <Workspace isFullscreen={isFullscreen} currentSketchId={currentSketchId} onSketchChange={handleSketchChange} />
