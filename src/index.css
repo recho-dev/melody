@@ -13,3 +13,10 @@ body {
   overflow: hidden;
   background-color: #0d1117;
 }
+
+/* Ensure tooltips appear above all content */
+#react-tooltip-root,
+[data-tooltip-place],
+.react-tooltip {
+  z-index: 10000 !important;
+}

@@ -10,6 +10,7 @@ function App() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
   const [autoPlay, setAutoPlay] = useState(false);
+  const [vimMode, setVimMode] = useState(false);
   const [currentSketchId, setCurrentSketchId] = useState(() => {
     const activeId = getActiveSketchId();
     if (activeId) return activeId;
@@ -85,9 +86,23 @@ function App() {
             })
           );
         }}
+        vimMode={vimMode}
+        onToggleVimMode={() => {
+          setVimMode(!vimMode);
+          window.dispatchEvent(
+            new CustomEvent("vim-mode-toggle", {
+              detail: {enabled: !vimMode},
+            })
+          );
+        }}
       />
       <main className={cn("relative h-[calc(100vh-48px)]", isFullscreen && "h-full", "main overflow-visible")}>
-        <Workspace isFullscreen={isFullscreen} currentSketchId={currentSketchId} onSketchChange={handleSketchChange} />
+        <Workspace
+          isFullscreen={isFullscreen}
+          currentSketchId={currentSketchId}
+          onSketchChange={handleSketchChange}
+          vimMode={vimMode}
+        />
       </main>
       <Instructions
         isFullscreen={isFullscreen}

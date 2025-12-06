@@ -23,6 +23,8 @@ export function Toolbar({
   onToggleInstructions,
   autoPlay,
   onToggleAutoPlay,
+  vimMode,
+  onToggleVimMode,
 }) {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const popupRef = useRef(null);
@@ -195,7 +197,31 @@ export function Toolbar({
                 )}
               />
             </button>
-            <Tooltip id="auto-play-tooltip" place="bottom" />
+            <Tooltip id="auto-play-tooltip" place="bottom" style={{zIndex: 10000}} />
+          </div>
+          {/* Vim mode toggle */}
+          <div className="flex items-center gap-2 px-2">
+            <span className="text-xs text-gray-400">Vim</span>
+            <button
+              onClick={onToggleVimMode}
+              data-tooltip-id="vim-mode-tooltip"
+              data-tooltip-content="Enable Vim key bindings in the editor"
+              className={cn(
+                "relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#58a6ff] focus:ring-offset-2 focus:ring-offset-[#0d1117]",
+                vimMode ? "bg-[#58a6ff]" : "bg-gray-600"
+              )}
+              aria-label="Toggle vim mode"
+              role="switch"
+              aria-checked={vimMode}
+            >
+              <span
+                className={cn(
+                  "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+                  vimMode ? "translate-x-5" : "translate-x-0.5"
+                )}
+              />
+            </button>
+            <Tooltip id="vim-mode-tooltip" place="bottom" style={{zIndex: 10000}} />
           </div>
           <button
             onClick={onToggleInstructions}

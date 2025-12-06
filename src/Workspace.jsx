@@ -19,7 +19,7 @@ function uid() {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
 
-export function Workspace({isFullscreen, currentSketchId, onSketchChange}) {
+export function Workspace({isFullscreen, currentSketchId, onSketchChange, vimMode = false}) {
   const initialX = typeof window !== "undefined" ? window.innerWidth / 2 : 0;
   const initialY = 0;
 
@@ -680,6 +680,7 @@ p.draw = () => {
           style={{height: "100%"}}
           isFullscreen={isFullscreen}
           initialProgress={currentSketch.soundProgress || {index: 0, percentage: 0}}
+          vimEnabled={vimMode}
         />
 
         {/* Render all sketches */}

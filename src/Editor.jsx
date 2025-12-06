@@ -2,7 +2,7 @@ import {useRef, useEffect} from "react";
 import {createEditor} from "./editor/createEditor.js";
 import "./editor/editor.css";
 
-export function Editor({code, onSave, isFullscreen, onTogglePreview, initialProgress, ...props}) {
+export function Editor({code, onSave, isFullscreen, onTogglePreview, initialProgress, vimEnabled = false, ...props}) {
   const containerRef = useRef(null);
   const editorRef = useRef(null);
 
@@ -13,13 +13,16 @@ export function Editor({code, onSave, isFullscreen, onTogglePreview, initialProg
       onSave,
       onTogglePreview,
       initialProgress,
+      vimEnabled,
     });
     const resizeObserver = new ResizeObserver(() => editorRef.current.resize());
     resizeObserver.observe(containerRef.current);
     return () => {
-      editorRef.current.destroy();
+      if (editorRef.current) {
+        editorRef.current.destroy();
+      }
     };
-  }, []);
+  }, [vimEnabled]); // Recreate editor when vim mode changes
 
   useEffect(() => {
     editorRef.current.updateFontSize(isFullscreen ? "16px" : "14px");
